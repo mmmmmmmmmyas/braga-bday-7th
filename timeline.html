@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Braga Technologies · The Journey</title>
+<script>
+// the constellation opens only after the invitation on the intro page is accepted
+try { if (!sessionStorage.getItem('braga7.accepted')) location.replace('index.html'); } catch (e) {}
+</script>
+<script src="./sky.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,700&amp;family=Barlow+Condensed:wght@500&amp;family=League+Gothic&amp;family=Oswald:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>html,body{margin:0;height:100%;background:#080504;overflow:hidden}a{color:#f4f3ef}a:hover{color:#9e9891}</style>
+</helmet>
+<div style="position:fixed;inset:0;background:#080504;color:#f4f3ef;font-family:Archivo,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none">
+  <div ref="{{ skyRef }}" onMouseMove="{{ onSkyMove }}" onMouseLeave="{{ onSkyLeave }}" onPointerDown="{{ onDragStart }}" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;cursor:grab;touch-action:none">
+    <div ref="{{ auroraRef }}" style="position:absolute;inset:0;pointer-events:none"></div>
+    <div ref="{{ dustRef }}" style="position:absolute;left:0;top:0;width:12556.6px;height:1080px;transform-origin:0 0;pointer-events:none;will-change:transform">
+      <svg width="12556.6" height="1080" viewBox="0 0 12556.6 1080" style="position:absolute;left:0;top:0;overflow:visible">
+        <sc-for list="{{ dust }}" as="p" hint-placeholder-count="0">
+          <circle cx="{{ p.x }}" cy="{{ p.y }}" r="{{ p.r }}" fill="#f4f3ef" opacity="{{ p.o }}"></circle>
+        </sc-for>
+      </svg>
+    </div>
+    <svg ref="{{ linesRef }}" style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none">
+      <sc-for list="{{ lines }}" as="l" hint-placeholder-count="0">
+        <path fill="{{ l.fill }}" stroke="{{ l.stroke }}" opacity="{{ l.op }}" style="transition:fill .25s,stroke .25s,opacity .5s"></path>
+      </sc-for>
+    </svg>
+    <sc-for list="{{ layers }}" as="L" hint-placeholder-count="0">
+      <div ref="{{ L.ref }}" style="position:absolute;left:0;top:0;width:12556.6px;height:1080px;transform-origin:0 0;pointer-events:none;will-change:transform">
+        <sc-for list="{{ L.guides }}" as="g" hint-placeholder-count="0">
+          <div style="position:absolute;top:0;height:1080px;left:{{ g.x }}px;width:0;border-left:1px dashed #f4f3ef;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 50%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 50%,transparent);opacity:{{ g.op }};transition:opacity .5s"></div>
+        </sc-for>
+        <sc-for list="{{ L.stars }}" as="st" hint-placeholder-count="0">
+          <div onMouseEnter="{{ st.enter }}" onMouseLeave="{{ st.leave }}" style="position:absolute;left:{{ st.hitLeft }}px;top:{{ st.hitTop }}px;width:{{ st.hit }}px;height:{{ st.hit }}px;display:flex;align-items:center;justify-content:center;border-radius:50%;pointer-events:{{ st.pe }}">
+            <sc-if value="{{ st.rays }}" hint-placeholder-val="{{ false }}">
+              <div data-rays="{{ st.key }}" style="position:absolute;left:50%;top:50%;width:0;height:0;opacity:{{ st.op }};transition:opacity .5s ease">
+                <sc-for list="{{ st.rays }}" as="ray" hint-placeholder-count="0">
+                  <div style="position:absolute;left:-1.33px;top:{{ st.rayTop }}px;width:2.67px;height:{{ st.rayLen }}px;border-radius:1.5px;background:{{ st.color }};transform-origin:1.33px {{ st.rayOrig }}px;transform:rotate({{ ray.deg }}deg);transition:background .25s"></div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="width:{{ st.size }}px;height:{{ st.size }}px;border-radius:50%;box-sizing:border-box;border:2.67px solid {{ st.color }};background:{{ st.fill }};box-shadow:0 0 {{ st.glowR }}px {{ st.glowS }}px {{ st.glow }};transform:scale({{ st.scale }});opacity:{{ st.op }};transition:transform .3s cubic-bezier(.2,.8,.2,1),background .25s,border-color .25s,box-shadow .3s,opacity .5s ease"></div>
+          </div>
+          <div onMouseEnter="{{ st.enter }}" onMouseLeave="{{ st.leave }}" style="position:absolute;left:{{ st.lx }}px;top:{{ st.lt }}px;font-size:{{ st.fs }}px;line-height:{{ st.lh }}px;font-family:{{ st.font }};font-weight:{{ st.weight }};font-style:{{ st.fstyle }};letter-spacing:{{ st.ls }};color:{{ st.color }};opacity:{{ st.labelOp }};white-space:pre;pointer-events:{{ st.pe }};transition:color .25s,opacity .5s ease">{{ st.label }}</div>
+        </sc-for>
+        <sc-for list="{{ L.years }}" as="y" hint-placeholder-count="0">
+          <div style="position:absolute;left:0;top:0;opacity:{{ y.op }};transition:opacity .5s ease">
+            <div style="position:absolute;left:{{ y.dotLeft }}px;top:{{ y.dotTop }}px;width:26px;height:26px;box-sizing:border-box;border-radius:50%;border:2.67px solid {{ y.color }};background:{{ y.fill }};box-shadow:0 0 18px 4px {{ y.glow }};transition:background .25s,border-color .25s,box-shadow .25s"></div>
+            <sc-if value="{{ y.rays }}" hint-placeholder-val="{{ false }}">
+              <div data-rays="{{ y.key }}" style="position:absolute;left:{{ y.cx }}px;top:{{ y.cy }}px;width:0;height:0">
+                <sc-for list="{{ y.rays }}" as="ray" hint-placeholder-count="0">
+                  <div style="position:absolute;left:-1.33px;top:-23px;width:2.67px;height:6px;border-radius:1.5px;background:{{ y.color }};transform-origin:1.33px 23px;transform:rotate({{ ray.deg }}deg);transition:background .25s"></div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="position:absolute;left:{{ y.lx }}px;top:{{ y.lt }}px;font-family:Oswald,sans-serif;font-weight:600;font-size:86px;line-height:86px;letter-spacing:0.09em;color:{{ y.color }};white-space:nowrap;transition:color .25s">{{ y.year }}</div>
+          </div>
+          <div onMouseEnter="{{ y.enter }}" onMouseLeave="{{ y.leave }}" style="position:absolute;left:{{ y.hitLeft }}px;top:{{ y.hitTop }}px;width:56px;height:56px;border-radius:50%;pointer-events:{{ y.pe }}"></div>
+        </sc-for>
+        <sc-if value="{{ L.pill }}" hint-placeholder-val="{{ false }}">
+          <div onMouseEnter="{{ L.pill.enter }}" onMouseLeave="{{ L.pill.leave }}" style="position:absolute;left:{{ L.pill.left }}px;top:331px;width:288px;height:126px;box-sizing:border-box;border:6px solid {{ L.pill.color }};border-radius:63px;background:#080504;display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px 2px {{ L.pill.glow }};opacity:{{ L.pill.op }};pointer-events:{{ L.pill.pe }};transition:border-color .25s,box-shadow .25s,opacity .5s ease">
+            <div style="font-family:Oswald,sans-serif;font-weight:600;font-size:86px;line-height:1;letter-spacing:0.09em;padding-left:0.09em;color:{{ L.pill.color }};transition:color .25s">2026</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+    <div ref="{{ startRef }}" style="position:absolute;left:0;top:0;pointer-events:none;visibility:hidden;opacity:{{ startOp }};transition:opacity .5s ease;will-change:transform">
+      <div style="zoom:0.75;width:1400px;height:340px;display:flex;align-items:center;gap:137px">
+      <p style="flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px">Scroll to the end of the timeline to collect your invitation.</p>
+      <div style="flex-shrink:0;box-sizing:border-box;width:320px;height:340px;padding:30px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;border:2px solid rgba(255,255,255,0.12);border-radius:16px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,0.08));-webkit-backdrop-filter:blur(4.5px);backdrop-filter:blur(4.5px);font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase">
+        <div style="flex-shrink:0;width:100%;display:flex;justify-content:space-between;align-items:flex-start;font-size:20px;line-height:1.12;color:rgba(255,255,255,0.56);white-space:nowrap"><span>Crew # 001</span><span>2019</span></div>
+        <div style="flex-shrink:0;width:102px;height:102px;border-radius:16px;background:#d9d9d9"></div>
+        <div style="flex-shrink:0;white-space:nowrap"><div style="font-size:24px;line-height:1.32;color:#fff">Dirga Sumantri</div><div style="font-size:20px;line-height:1.32;color:rgba(255,255,255,0.32)">ceo@braga.co.id</div></div>
+        <div style="flex-shrink:0;font-size:24px;line-height:1.12;color:rgba(255,255,255,0.56);white-space:nowrap">CEO</div>
+      </div>
+      <div style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
+        <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;width:100%">NAVIGATION</p>
+        <div style="position:relative;flex-shrink:0;width:100px;height:32px"><img src="uploads/starting/nav-pill-arrow.svg" alt="" draggable="false" style="position:absolute;display:block;left:-1.050px;top:-1.050px"></div>
+        <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px;opacity:0.8"><span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Hold</span> &amp; <span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Drag</span> the space. LET’s TRAVERSE THROUGH THE MEMORY LANE.</p>
+      </div>
+      <div style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
+        <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;width:100%">STELLAR-CLASSIFICATION</p>
+        <div style="position:relative;flex-shrink:0;width:242px;height:92px">
+          <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:0;top:79px">MEMORIES</p>
+          <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:76px;top:0">PICTURES</p>
+          <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:208px;top:79px">STORIES</p>
+          <div style="position:absolute;box-sizing:border-box;width:28px;height:28px;border-radius:20px;top:31px;left:28px;border:2px solid #d9d9d9"></div>
+          <img src="uploads/starting/leader-memories.svg" alt="" draggable="false" style="position:absolute;display:block;left:22.573px;top:56.740px">
+          <img src="uploads/starting/leader-pictures.svg" alt="" draggable="false" style="position:absolute;display:block;left:96.092px;top:15.711px">
+          <img src="uploads/starting/leader-stories.svg" alt="" draggable="false" style="position:absolute;display:block;left:198.546px;top:57.789px">
+          <div style="position:absolute;box-sizing:border-box;width:28px;height:28px;border-radius:20px;top:31px;left:104px;background:#d9d9d9"></div>
+          <div style="position:absolute;box-sizing:border-box;width:28px;height:28px;border-radius:20px;top:31px;left:180px;border:2px solid #d9d9d9"></div>
+          <div style="position:absolute;left:164.5px;top:15px;width:59px;height:59px"><img src="uploads/starting/star-rays.svg" alt="" draggable="false" style="position:absolute;display:block;left:0;top:0"></div>
+        </div>
+        <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px;opacity:0.8"><span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">HOVER</span> AROUND! EACH STAR REPRESENT A CORE MOMENT, BUT SOME HAVE MORE TO OFFER.</p>
+      </div>
+      </div>
+    </div>
+    <div style="position:absolute;top:20px;left:20px;right:20px;pointer-events:none">
+    <div ref="{{ navRef }}" style="zoom:0.85;box-sizing:border-box;padding:11px 23px;border:1.18px solid rgba(236,235,231,calc(0.32 * var(--nav-op,0.5)));transition:border-color .2s;border-radius:13.41px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center">
+      <img src="uploads/nav/logo-braga.svg" alt="Braga Technologies" draggable="false" style="display:block;justify-self:start;opacity:var(--nav-op,0.5);transition:opacity .2s">
+      <div role="img" aria-label="Seven years in and the journey is still going" style="position:relative;flex-shrink:0;width:134px;height:31.983px">
+        <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:5.678px;letter-spacing:0.6814px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#ecebe7;left:17.03px;top:24.98px">the journey</span>
+        <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:5.678px;letter-spacing:0.6814px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#ecebe7;left:106.75px;top:0">is still</span>
+        <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:5.678px;letter-spacing:0.6814px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#ecebe7;left:118.95px;top:23.28px">going</span>
+        <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:5.678px;letter-spacing:0.6814px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#ecebe7;left:0;top:7.38px">Seven years in</span>
+        <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:5.678px;letter-spacing:0.6814px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#ecebe7;left:65.58px;top:1.99px">and</span>
+        <img src="uploads/nav/logo-event-line.svg" alt="" draggable="false" style="position:absolute;display:block;left:30.98px;top:8.237px">
+        <div style="position:absolute;left:116.4px;top:21.29px;width:17.602px;height:10.504px;box-sizing:border-box;border:0.568px solid #ecebe7;border-radius:4.542px"></div>
+        <div style="position:absolute;width:2.271px;height:1.703px;border-radius:4.542px;background:#ecebe7;left:105.89px;top:7.67px"></div>
+        <div style="position:absolute;width:2.271px;height:1.703px;border-radius:4.542px;background:#ecebe7;left:44.57px;top:24.13px"></div>
+        <div style="position:absolute;width:2.271px;height:1.703px;border-radius:4.542px;background:#ecebe7;left:62.74px;top:7.67px"></div>
+        <div style="position:absolute;width:2.271px;height:1.703px;border-radius:4.542px;background:#ecebe7;left:29.81px;top:15.9px"></div>
+      </div>
+      <div style="justify-self:end;display:flex;align-items:center;gap:8px;box-sizing:border-box;padding:4px 0 4px 24px;border-left:1.18px solid rgba(236,235,231,calc(0.32 * var(--nav-op,0.5)));transition:border-color .2s">
+        <button type="button" data-nav-sound="1" onClick="{{ toggleSound }}" aria-label="{{ soundLabel }}" title="{{ soundLabel }}" style="display:block;flex-shrink:0;box-sizing:content-box;width:18px;height:18px;margin:-6px;padding:6px;border:0;background:none;cursor:pointer;pointer-events:auto;opacity:var(--nav-op,0.5);transition:opacity .2s">
+          <img src="uploads/nav/volume-control.svg" alt="" draggable="false" style="display:block;clip-path:{{ volClip }}">
+        </button>
+        <div ref="{{ waveRef }}" aria-hidden="true" style="position:relative;flex-shrink:0;width:135.35px;height:21.409px;opacity:var(--nav-op,0.5);transition:opacity .2s"></div>
+      </div>
+    </div>
+    </div>
+    <div style="position:absolute;left:50%;bottom:29px;width:331px;transform:translateX(-50%);box-sizing:border-box;padding:0 11px;border:1px solid rgba(255,255,255,0.32);border-radius:8px;overflow:hidden;pointer-events:none">
+      <div style="width:100%;height:39px;pointer-events:auto">
+        <div style="zoom:0.85;width:100%;height:100%;display:flex">
+          <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="11">
+            <div data-rail="1" onClick="{{ sec.go }}" style="flex:{{ sec.flex }};min-width:0;box-sizing:border-box;border-left:1.18px solid {{ sec.edge }};padding:0 {{ sec.pad }}px;display:flex;flex-direction:column;justify-content:center;gap:3px;cursor:pointer;background:{{ sec.railBg }};transition:background .3s,flex-basis .3s,flex-grow .3s,padding .3s" style-hover="background:rgba(255,255,255,0.04)">
+              <span style="display:{{ sec.idxDisplay }};font-size:10px;font-weight:700;letter-spacing:0.14em;text-align:{{ sec.align }};color:#fff">{{ sec.idx }}</span>
+              <span style="display:{{ sec.nameDisplay }};font-size:11px;font-weight:400;letter-spacing:0.04em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sec.short }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
+      <div ref="{{ cardsRef }}" style="position:absolute;inset:0"></div>
+      <div ref="{{ ringRef }}" style="position:absolute;left:0;top:0;width:100px;height:100px;box-sizing:border-box;border:1px solid rgba(244,243,239,0.35);border-radius:50%;opacity:0;transition:opacity .25s;will-change:transform">
+        <div ref="{{ hintRef }}" style="position:absolute;inset:0;opacity:0"></div>
+      </div>
+    </div>
+  </div>
+  <div ref="{{ zoomRef }}" style="position:fixed;inset:0;z-index:20;pointer-events:none"></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;depth&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;},&quot;orbitTilt&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:10,&quot;min&quot;:0,&quot;max&quot;:20,&quot;step&quot;:1,&quot;unit&quot;:&quot;°&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;focusSection&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showGuides&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { soundMode: 'full', data: null, vw: 1200, vh: 800, hoverSec: -1, centerSec: 0, hoverKey: null };
+  skyRef = React.createRef(); dustRef = React.createRef(); linesRef = React.createRef(); tipRef = React.createRef(); cardsRef = React.createRef(); ringRef = React.createRef(); zoomRef = React.createRef(); hintRef = React.createRef(); waveRef = React.createRef(); navRef = React.createRef(); auroraRef = React.createRef(); startRef = React.createRef(); lastAct = performance.now(); cards = []; imgDims = {};
+  layerEls = []; layerRefFns = [];
+  camW = null; targetW = 0; mx = null; tipSec = -1; snapped = true; wheelT = 0; boxes = [];
+  W = 12556.6; H = 1080;
+  // Starting Point: START wide for its content, plus an empty spacer before Day 0, so focus doesn't switch straight away
+  START = 1440; SPACER = 400; LEAD = this.START + this.SPACER;
+  // F: empty closing section after 2027
+  TAIL = 1440;
+  // default size of the top nav, bottom rail and pop-up cards; template uses the same value as zoom:0.85
+  UI = 0.85;
+  // stars are framed above this strip, where the old bottom rail sat, so they stay clear of the timeline card
+  RAIL = 72 * this.UI;
+  // gain per sound mode: music fades down and out, hover SFX stays audible and drops in 'off'
+  BGM_GAIN = { full: 0.385, low: 0.12, off: 0 }; SFX_GAIN = { full: 0.6, low: 0.6, off: 0.3 }; SOUND_NEXT = { full: 'low', low: 'off', off: 'full' };
+  // zoom level per section: Starting Point, D0→19, 19→20, 20→21, 21→22, 22→23, 23→24, 24→25, 25→26, 26→27
+  Z = [0, 0, 0, 20, 20, 40, 60, 60, 40, 70, 70]; DUST_Z = -30;
+  ACC = 'oklch(0.86 0.13 85)'; INK = '#f4f3ef';
+
+  componentDidMount() {
+    fetch(new URL('constellation.json', document.baseURI)).then(r => r.json()).then(data => {
+      this.dust = this.makeDust();
+      this.prepLines(data);
+      [...data.stars, ...data.years].forEach(st => (st.images || (st.image ? [st.image] : [])).map(x => typeof x === 'string' ? x : x.src).forEach(src => { if (this.isVideo(src)) { const v = document.createElement('video'); v.preload = 'metadata'; v.muted = true; v.onloadedmetadata = () => { this.imgDims[src] = { w: v.videoWidth, h: v.videoHeight }; }; v.src = src; return; } const im = new Image(); im.onload = () => { this.imgDims[src] = { w: im.naturalWidth, h: im.naturalHeight }; }; im.src = src; }));
+      this.setState({ data });
+    });
+    this.onResize = () => this.setState({ vw: window.innerWidth, vh: window.innerHeight });
+    this.onResize();
+    window.addEventListener('resize', this.onResize);
+    this.onWheel = e => {
+      if (!this.skyRef.current || !this.skyRef.current.contains(e.target)) return;
+      e.preventDefault(); this.lastAct = performance.now();
+      this.targetW = this.clamp(this.targetW + (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * 0.8 / (this.scale() * (this.fitC || 1)));
+      this.wheelT = performance.now(); this.snapped = false;
+    };
+    window.addEventListener('wheel', this.onWheel, { passive: false });
+    this.onKey = e => {
+      this.lastAct = performance.now();
+      if (e.key === 'Escape') this.closeZoom();
+      if (this.zoom) return;
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const secs = this.sections(); if (!secs.length) return;
+      this.goSection(Math.max(0, Math.min(secs.length - 1, this.state.centerSec + (e.key === 'ArrowRight' ? 1 : -1))));
+    };
+    window.addEventListener('keydown', this.onKey);
+    this.bgmP = fetch(new URL('uploads/space-music.mp3', document.baseURI)).then(r => r.arrayBuffer()).catch(() => null);
+    this.sfxP = fetch(new URL('uploads/hover.mp3', document.baseURI)).then(r => r.arrayBuffer()).catch(() => null);
+    this.onGesture = () => { this.initAudio(); this.au && this.au.ctx.resume(); };
+    window.addEventListener('pointerdown', this.onGesture);
+    window.addEventListener('keydown', this.onGesture);
+    this.onVis = () => { if (!this.au) return; document.hidden ? this.au.ctx.suspend() : this.au.ctx.resume(); };
+    document.addEventListener('visibilitychange', this.onVis);
+    this.initAudio(); if (this.au) this.au.ctx.resume().catch(() => {});
+    this.onDragMove = e => {
+      const g = this.drag; if (!g) return;
+      const per = this.scale() * (this.fitC || 1), t = performance.now(), dtm = Math.max(1, t - g.lt);
+      g.v = g.v * 0.6 + ((e.clientX - g.lx) / dtm) * 0.4; g.lx = e.clientX; g.lt = t;
+      const dx = e.clientX - g.x, dy = e.clientY - g.y;
+      if (!g.axis && Math.hypot(dx, dy) > 6) g.axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+      if (g.axis === 'x') this.targetW = this.camW = this.clamp(g.w - dx * 0.8 / per);
+      else if (g.axis === 'y') { this.pitch = this.pitchT = Math.max(-10, Math.min(10, g.p0 - dy / 30)); this.pitchV = 0; }
+    };
+    this.onDragEnd = () => {
+      const g = this.drag; if (!g) return; this.drag = null;
+      if (this.skyRef.current) this.skyRef.current.style.cursor = 'grab';
+      if (g.axis !== 'x') return;
+      if (performance.now() - g.lt > 100) g.v = 0;
+      const per = this.scale() * (this.fitC || 1);
+      this.targetW = this.clamp(this.targetW - (g.v * 260 * 0.8) / per);
+      this.snapped = false; this.wheelT = performance.now() - 200;
+    };
+    window.addEventListener('pointermove', this.onDragMove);
+    window.addEventListener('pointerup', this.onDragEnd);
+    window.addEventListener('pointercancel', this.onDragEnd);
+    this.initAurora();
+    const tick = () => { this.tick(); this.tickStart(); this.tickWave(); this.tickAurora(); this.raf = requestAnimationFrame(tick); };
+    this.raf = requestAnimationFrame(tick);
+  }
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf);
+    if (this.aur) this.aur.destroy();
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('wheel', this.onWheel);
+    window.removeEventListener('keydown', this.onKey);
+    window.removeEventListener('pointerdown', this.onGesture);
+    window.removeEventListener('keydown', this.onGesture);
+    document.removeEventListener('visibilitychange', this.onVis);
+    if (this.au) { clearTimeout(this.au.timer); this.au.ctx.close(); }
+    window.removeEventListener('pointermove', this.onDragMove);
+    window.removeEventListener('pointerup', this.onDragEnd);
+    window.removeEventListener('pointercancel', this.onDragEnd);
+  }
+  // seamless BGM: trim encoder silence, then overlap each pass with an equal-power crossfade
+  // the nav lets pointer events through to the sky, so its hover is detected from the cursor position
+  setNavHover(e) {
+    const el = this.navRef.current; if (!el) return;
+    let on = false;
+    if (e && !this.drag) { const r = el.getBoundingClientRect(); on = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; }
+    if (on !== this.navHover) { this.navHover = on; el.style.setProperty('--nav-op', on ? '0.8' : '0.5'); }
+  }
+  // Starting Point set: crisp screen-space layer that travels with the camera, crew card centred on the page at rest
+  tickStart() {
+    const el = this.startRef.current; if (!el || !this.boxes.length || this.camW == null) return;
+    const vw = this.state.vw, Z = 0.75, CARD_X = 482 * Z, CARD_Y = 170 * Z, half = v => Math.round(v * 2) / 2;
+    const x = half(vw / 2 - CARD_X + (this.boxes[0].cx - this.camW) * this.scale() * (this.fitC || 1)), y = half(this.state.vh / 2 - CARD_Y);
+    const show = x < vw && x + 1400 * Z > 0, key = `${x}|${y}|${show}`;
+    if (key === this.startKey) return; this.startKey = key;
+    el.style.visibility = show ? 'visible' : 'hidden';
+    if (show) el.style.transform = `translate3d(${x}px,${y}px,0)`;
+  }
+  initAurora() { if (this.auroraRef.current && !this.aur) this.aur = BragaSky.aurora(this.auroraRef.current, { getCam: () => this.camW || 0 }); }
+  tickAurora() { if (this.aur) this.aur.tick(); }
+  // nav soundwave: 34 bars (1px wide, 4px pitch, 17px tall), low → high frequency, driven by the audible mix
+  tickWave() {
+    const host = this.waveRef.current; if (!host) return;
+    const N = 34, H = 17, DB_MIN = -92, DB_MAX = -44, TILT = 2.5;
+    if (!this.waveEls) {
+      this.waveEls = Array.from({ length: N }, (_, i) => {
+        const el = document.createElement('div');
+        el.style.cssText = `position:absolute;left:${2.353 + i * 4}px;top:0.713px;width:1px;height:${H}px;background:#ecebe7;transform-origin:50% 100%;transform:scaleY(${1 / H})`;
+        host.appendChild(el); return el;
+      });
+      this.waveLv = new Float32Array(N).fill(1); this.waveShown = new Array(N).fill(1);
+    }
+    const an = this.au && this.au.analyser, live = an && this.au.ctx.state === 'running';
+    if (live && (!this.waveData || this.waveData.length !== an.frequencyBinCount)) this.waveData = new Float32Array(an.frequencyBinCount);
+    if (live) an.getFloatFrequencyData(this.waveData);
+    for (let i = 0; i < N; i++) {
+      let target = 1;
+      if (live) {
+        const hz = this.au.ctx.sampleRate / an.fftSize, f0 = 50 * Math.pow(280, i / N), f1 = 50 * Math.pow(280, (i + 1) / N);
+        const b0 = Math.floor(f0 / hz), b1 = Math.max(b0 + 1, Math.ceil(f1 / hz));
+        let db = -Infinity; for (let b = b0; b < b1 && b < this.waveData.length; b++) db = Math.max(db, this.waveData[b]);
+        const u = (db + TILT * Math.log2(f0 / 50) - DB_MIN) / (DB_MAX - DB_MIN);
+        target = 1 + (H - 1) * Math.max(0, Math.min(1, u));
+      }
+      const lv = this.waveLv[i] += (target - this.waveLv[i]) * (target > this.waveLv[i] ? 0.55 : 0.16);
+      const shown = Math.round(lv * 4) / 4;
+      if (shown !== this.waveShown[i]) { this.waveShown[i] = shown; this.waveEls[i].style.transform = `scaleY(${(shown / H).toFixed(4)})`; }
+    }
+  }
+  initAudio() {
+    if (this.au) return;
+    const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return;
+    const ctx = new Ctx(), master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+    const sfx = ctx.createGain(), comp = ctx.createDynamicsCompressor(); sfx.gain.value = this.SFX_GAIN[this.state.soundMode];
+    comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.2;
+    sfx.connect(comp); comp.connect(ctx.destination);
+    // taps the real mix after all gains (BGM + SFX), so it reads what is actually audible
+    const analyser = ctx.createAnalyser(); analyser.fftSize = 2048; analyser.smoothingTimeConstant = 0.7;
+    master.connect(analyser); comp.connect(analyser);
+    this.au = { ctx, master, sfx, analyser };
+    this.sfxP.then(ab => ab && ctx.decodeAudioData(ab)).then(b => { if (b) this.au.hover = b; }).catch(() => {});
+    this.bgmP.then(ab => ab && ctx.decodeAudioData(ab)).then(buf => {
+      if (!buf || ctx.state === 'closed') return;
+      const d = buf.getChannelData(0), th = 0.002; let a = 0, b = d.length - 1;
+      while (a < b && Math.abs(d[a]) < th) a++; while (b > a && Math.abs(d[b]) < th) b--;
+      Object.assign(this.au, { buf, t0: a / buf.sampleRate, len: (b - a) / buf.sampleRate });
+      const N = 128; this.au.fin = new Float32Array(N); this.au.fout = new Float32Array(N);
+      for (let i = 0; i < N; i++) { const x = i / (N - 1) * Math.PI / 2; this.au.fin[i] = Math.sin(x); this.au.fout[i] = Math.cos(x); }
+      this.loopFrom(ctx.currentTime + 0.05, true);
+    });
+    this.applySound();
+  }
+  loopFrom(when, first) {
+    const au = this.au, { ctx, buf, t0, len } = au, XF = Math.min(4, len / 4);
+    const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = buf;
+    src.connect(g); g.connect(au.master);
+    if (first) g.gain.value = 1; else { g.gain.value = 0; g.gain.setValueCurveAtTime(au.fin, when, XF); }
+    g.gain.setValueCurveAtTime(au.fout, when + len - XF, XF);
+    src.start(when, t0, len);
+    const next = when + len - XF;
+    au.timer = setTimeout(() => this.loopFrom(next, false), Math.max(0, (next - ctx.currentTime - 2) * 1000));
+  }
+  applySound() {
+    const au = this.au; if (!au) return;
+    const t = au.ctx.currentTime, gn = au.master.gain;
+    au.ctx.resume();
+    gn.cancelScheduledValues(t); gn.setValueAtTime(gn.value, t); gn.linearRampToValueAtTime(this.BGM_GAIN[this.state.soundMode], t + 1.2);
+    au.sfx.gain.setTargetAtTime(this.SFX_GAIN[this.state.soundMode], t, 0.05);
+  }
+  playHover(k) {
+    const au = this.au, now = performance.now();
+    // ignore re-entry of the same node (dot ↔ label) right after leaving it
+    if (k === this.sfxKey && now - (this.leaveT || 0) < 250) return;
+    this.sfxKey = k;
+    if (!au || !au.hover || au.ctx.state !== 'running') return;
+    // one voice at a time: duck the previous hit quickly, soft attack on the new one, quieter when retriggered fast
+    const t = au.ctx.currentTime, since = t - (au.lastHit || 0); au.lastHit = t;
+    if (since < 0.07) return;
+    if (au.voice) { const g0 = au.voice.g.gain; g0.cancelScheduledValues(t); g0.setValueAtTime(g0.value, t); g0.linearRampToValueAtTime(0, t + 0.06); au.voice.s.stop(t + 0.08); }
+    const s = au.ctx.createBufferSource(), g = au.ctx.createGain(), peak = since < 0.4 ? 0.55 : 1;
+    s.buffer = au.hover; s.connect(g); g.connect(au.sfx);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + 0.008);
+    s.start(t); au.voice = { s, g };
+    s.onended = () => { if (au.voice && au.voice.s === s) au.voice = null; };
+  }
+  makeDust() { return BragaSky.dust(this.W, this.H); }
+  secsFor(years) {
+    const out = [{ i: 0, x0: 0, x1: this.LEAD }];
+    for (let j = 0; j < years.length; j++) out.push({ i: j + 1, x0: j === 0 ? this.LEAD : years[j - 1].x, x1: j === years.length - 1 ? this.W - this.TAIL : years[j].x });
+    out.push({ i: years.length + 1, x0: this.W - this.TAIL, x1: this.W });
+    return out;
+  }
+  prepLines(d) {
+    const secs = this.secsFor(d.years);
+    const secAt = x => { for (const s of secs) if (x >= s.x0 && x < s.x1) return s.i; return secs.length - 1; };
+    const nodes = [...d.stars.map(s => ({ k: 's' + s.id, x: s.x, y: s.y, sec: secAt(s.x) })), ...d.years.map(y => ({ k: 'y' + y.year, x: y.x, y: y.y, sec: secAt(y.x), pill: y.pill }))];
+    const byKey = {}; nodes.forEach(n => byKey[n.k] = n);
+    const snap = (x, y) => {
+      let sec = null, bd = 14;
+      for (const n of nodes) {
+        if (n.pill && Math.abs(x - n.x) < 154 && y > 321 && y < 467) return n.sec;
+        const dd = Math.hypot(n.x - x, n.y - y); if (dd < bd) { bd = dd; sec = n.sec; }
+      }
+      return sec;
+    };
+    const parsed = d.lines.map(l => {
+      const toks = l.d.match(/[MLCZ]|-?\d*\.?\d+/g), out = [];
+      for (let j = 0; j < toks.length; j++) {
+        if (/[MLCZ]/.test(toks[j])) { out.push(toks[j]); continue; }
+        const x = +toks[j], y = +toks[++j], s = snap(x, y);
+        out.push({ x, y, sec: s == null ? secAt(x) : s, free: s == null });
+      }
+      return out;
+    });
+    // skeleton: long straight strokes + node-to-node chords, used to pin junctions/dashes onto the 3D line they sit on
+    const segs = [];
+    parsed.forEach(p => { let prev = null; p.forEach(t => { if (typeof t === 'string') { if (t === 'M' || t === 'Z') prev = null; return; } if (prev && Math.hypot(t.x - prev.x, t.y - prev.y) > 20) segs.push([prev, t]); prev = t; }); });
+    d.lines.forEach(l => { for (let i = 0; i < l.nodes.length; i++) for (let j = i + 1; j < l.nodes.length; j++) { const a = byKey[l.nodes[i]], b = byKey[l.nodes[j]]; if (a && b) segs.push([a, b]); } });
+    const onSeg = (v, a, b) => {
+      const dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy; if (L2 < 1) return null;
+      const t = ((v.x - a.x) * dx + (v.y - a.y) * dy) / L2; if (t < 0.002 || t > 0.998) return null;
+      if (Math.hypot(a.x + t * dx - v.x, a.y + t * dy - v.y) > 3) return null;
+      if (Math.hypot(v.x - a.x, v.y - a.y) < 3 || Math.hypot(v.x - b.x, v.y - b.y) < 3) return null;
+      return t;
+    };
+    this.boxes = secs.map(sec => ({ x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity }));
+    const grow = (i, xa, xb, ya, yb) => { const b = this.boxes[i]; b.x0 = Math.min(b.x0, xa); b.x1 = Math.max(b.x1, xb); b.y0 = Math.min(b.y0, ya); b.y1 = Math.max(b.y1, yb); };
+    d.stars.forEach(st => {
+      const i = secAt(st.x), lines = String(st.label).split('\n'), wch = Math.max(...lines.map(l => l.length));
+      const lw = wch * st.fs * (st.style === 'c' ? 0.5 : 0.58), lt = st.ly - st.fs * 1.08;
+      grow(i, st.x - st.r, st.x + st.r, st.y - st.r, st.y + st.r);
+      grow(i, st.lx, st.lx + lw, lt, lt + st.fs * 1.35 * lines.length);
+    });
+    d.years.forEach(y => {
+      const i = secAt(y.x);
+      if (y.pill) grow(i, y.x - 144, y.x + 144, 331, 457);
+      else { grow(i, y.x - 13, y.x + 13, y.y - 13, y.y + 13); grow(i, y.lx, y.lx + 205, y.base - 74, y.base + 12); }
+    });
+    secs.forEach((sec, i) => {
+      const y = d.years[i - 1]; if (i === 0 || i >= secs.length - 1 || !y) return;
+      const n = y.pill ? { x0: y.x - 144, x1: y.x + 144, y0: 331, y1: 457 } : { x0: Math.min(y.x - 13, y.lx), x1: Math.max(y.x + 13, y.lx + 205), y0: Math.min(y.y - 13, y.base - 74), y1: Math.max(y.y + 13, y.base + 12) };
+      n.sec = secAt(y.x); this.boxes[i].next = n;
+    });
+    // the Starting Point section has no stars yet, so the camera frames the section itself
+    this.boxes[0] = { x0: 0, x1: this.START, y0: 270, y1: 810 };
+    this.boxes[secs.length - 1] = { x0: this.W - this.TAIL, x1: this.W, y0: 270, y1: 810 };
+    this.boxes.forEach(b => { b.cx = (b.x0 + b.x1) / 2; b.cy = (b.y0 + b.y1) / 2; });
+    this.lineDash = d.lines.map(l => (l.d.match(/M/g) || []).length > 30);
+    const dashGeo = (l, p) => {
+      const pts = [], cur = [];
+      const flush = () => { if (cur.length) { pts.push({ x: cur.reduce((s, q) => s + q.x, 0) / cur.length, y: cur.reduce((s, q) => s + q.y, 0) / cur.length }); cur.length = 0; } };
+      p.forEach(t => { if (t === 'M') flush(); else if (typeof t !== 'string') cur.push(t); }); flush();
+      pts.sort((a, b) => a.x - b.x);
+      const first = pts[0], last = pts[pts.length - 1];
+      const mids = l.nodes.map(k => byKey[k]).filter(n => n && n.x > first.x + 14 && n.x < last.x - 14).sort((a, b) => a.x - b.x);
+      const P = q => { const s = snap(q.x, q.y); return [q.x, q.y, s == null ? secAt(q.x) : s]; };
+      const out = ['M', P(first)];
+      mids.forEach(n => out.push('L', [n.x, n.y, n.sec]));
+      out.push('L', P(last));
+      return out;
+    };
+    this.lineGeo = parsed.map((p, li) => this.lineDash[li] ? dashGeo(d.lines[li], p) : p.map(t => {
+      if (typeof t === 'string') return t;
+      if (t.free) for (const [a, b] of segs) {
+        const u = onSeg(t, a, b);
+        if (u != null) return { a: [a.x, a.y, a.sec], b: [b.x, b.y, b.sec], t: u };
+      }
+      return [t.x, t.y, t.sec];
+    }));
+  }
+  depthAmt() { return this.props.depth ?? 2; }
+  kOf(z) { return Math.max(0.2, 1 + z / 100 * this.depthAmt()); }
+  skyH() { return this.state.vh - this.RAIL; }
+  fitS(k) { return this.skyH() * 0.94 / (this.H * k); }
+  scale() { return this.fitS(1); }
+  clamp(v) { const b = this.boxes; if (!b.length) return v; return Math.max(b[0].cx, Math.min(b[b.length - 1].cx, v)); }
+  // Starting Point keeps focus until the camera is 80% of the way to section 01; elsewhere the nearest section is focused
+  focusSec(x) { const b = this.boxes; if (b.length > 1 && x >= b[0].cx && x < b[1].cx) return x < b[0].cx + (b[1].cx - b[0].cx) * 0.8 ? 0 : 1; return this.nearestSec(x); }
+  nearestSec(x) { let bi = 0, bd = Infinity; this.boxes.forEach((b, i) => { const dd = Math.abs(b.cx - x); if (dd < bd) { bd = dd; bi = i; } }); return bi; }
+
+  sections() {
+    const d = this.state.data; if (!d) return [];
+    const ys = d.years, yy = n => '’' + String(n).slice(2);
+    return this.secsFor(ys).map(sec => {
+      const i = sec.i;
+      return { ...sec,
+        name: i === 0 ? 'Starting Point' : i > ys.length ? 'F' : i === 1 ? `Day 0 → ${ys[0].year}` : `${ys[i - 2].year} → ${ys[i - 1].year}`,
+        short: i === 0 ? 'Starting Point' : i > ys.length ? 'F' : i === 1 ? `D0–${yy(ys[0].year)}` : `${yy(ys[i - 2].year)}–${String(ys[i - 1].year).slice(2)}` };
+    });
+  }
+  secAt(x) { const s = this.sections(); for (const sec of s) if (x >= sec.x0 && x < sec.x1) return sec.i; return s.length - 1; }
+
+  goSection(i) {
+    const sec = this.sections()[i]; if (!sec) return;
+    this.targetW = this.clamp(this.boxes[i] ? this.boxes[i].cx : (sec.x0 + sec.x1) / 2); this.snapped = true;
+  }
+  layerRef(i) { return this.layerRefFns[i] || (this.layerRefFns[i] = el => { this.layerEls[i] = el; this.lastKey = null; }); }
+  tf(p) { return `translate3d(${p.tx}px,${p.ty}px,0) scale(${p.ks})`; }
+
+  pickOrbit() {
+    const max = this.props.orbitTilt ?? 10, a = (0.7 + Math.random() * 0.3) * max * (Math.random() < 0.5 ? -1 : 1);
+    if (Math.random() < 0.5) { this.yawT = a; this.pitchT = 0; } else { this.pitchT = a; this.yawT = 0; }
+  }
+  m4(a, b) { const r = new Array(16).fill(0); for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) for (let k = 0; k < 4; k++) r[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j]; return r; }
+  css(m) { const o = []; for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) o.push(+m[r * 4 + c].toFixed(8)); return 'matrix3d(' + o.join(',') + ')'; }
+  ph(m, x, y) { return [m[0] * x + m[1] * y + m[3], m[4] * x + m[5] * y + m[7], m[12] * x + m[13] * y + m[15]]; }
+  pt(m, x, y) { const w = Math.max(0.05, m[12] * x + m[13] * y + m[15]); return [(m[0] * x + m[1] * y + m[3]) / w, (m[4] * x + m[5] * y + m[7]) / w, m[12] * x + m[13] * y + m[15]]; }
+
+  tick() {
+    if (!this.state.data) return;
+    const vw = this.state.vw, secs = this.sections(), skyH = this.skyH();
+    if (this.camW == null) this.camW = this.targetW = this.boxes[0].cx;
+    if (this.yaw == null) { this.yaw = this.pitch = 0; this.pickOrbit(); }
+    const s = this.scale();
+    const nowS = performance.now();
+    // soft snap: once scrolling pauses, settle on the nearest section
+    // soft-snap applies from section 01 onward; between Starting Point and section 01 the camera rests where it is left
+    if (!this.snapped && nowS - this.wheelT > 160) { this.snapped = true; if (this.targetW >= this.boxes[1].cx) this.targetW = this.boxes[this.nearestSec(this.targetW)].cx; }
+    this.targetW = this.clamp(this.targetW);
+    this.camW += (this.targetW - this.camW) * 0.085;
+    if (Math.abs(this.targetW - this.camW) * s < 0.3) this.camW = this.targetW;
+    // critically-damped spring for the orbit angles (frame-rate independent)
+    const now = performance.now(), dt = Math.min(0.05, ((now - (this.lastT || now)) / 1000) || 0.016); this.lastT = now;
+    const W0 = 3.2;
+    const spring = (x, v, t) => { const a = W0 * W0 * (t - x) - 2 * W0 * v; v += a * dt; return [x + v * dt, v]; };
+    [this.yaw, this.yawV] = spring(this.yaw, this.yawV || 0, this.yawT);
+    [this.pitch, this.pitchV] = spring(this.pitch, this.pitchV || 0, this.pitchT);
+
+    const camC = this.camW, cx = vw / 2, cy = skyH / 2, D = 3 * Math.max(vw, skyH);
+    const zOf = k => D * (1 - 1 / k);
+    const cs = this.focusSec(camC);
+    const zpT = zOf(this.kOf(this.Z[cs]));
+    if (this.zp == null) this.zp = zpT;
+    [this.zp, this.zpV] = spring(this.zp, this.zpV || 0, zpT);
+    const zp = this.zp;
+    const ry = this.yaw * Math.PI / 180, rx = this.pitch * Math.PI / 180;
+    const Ry = [Math.cos(ry), 0, Math.sin(ry), 0, 0, 1, 0, 0, -Math.sin(ry), 0, Math.cos(ry), 0, 0, 0, 0, 1];
+    const Rx = [1, 0, 0, 0, 0, Math.cos(rx), -Math.sin(rx), 0, 0, Math.sin(rx), Math.cos(rx), 0, 0, 0, 0, 1];
+    const T = (x, y, z) => [1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z, 0, 0, 0, 1];
+    const Proj = [1, 0, -cx / D, 0, 0, 1, -cy / D, 0, 0, 0, 1, 0, 0, 0, -1 / D, 1];
+    const G = this.m4(this.m4(this.m4(Proj, T(cx, cy, zp)), this.m4(Rx, Ry)), T(-cx, -cy, -zp));
+    const M = z => {
+      const k = this.kOf(z), tx = vw / 2 - camC * s * k, ty = cy - this.H * s * k / 2;
+      return this.m4(G, [s, 0, 0, cx + (tx - cx) / k, 0, s, 0, cy + (ty - cy) / k, 0, 0, 1, zOf(k), 0, 0, 0, 1]);
+    };
+    const raw = this.Z.map(M);
+    // frame the focused section: fill the width, never exceed the height; blend between neighbouring sections
+    const PAD = Math.min(60, skyH * 0.18), top = PAD, bot = skyH - PAD;
+    const fitFor = i => {
+      const b = this.boxes[i], m = raw[i];
+      let xa = Infinity, xb = -Infinity, ya = Infinity, yb = -Infinity;
+      const add = (bx, mm) => { for (const x of [bx.x0, bx.x1]) for (const y of [bx.y0, bx.y1]) { const p = this.pt(mm, x, y); xa = Math.min(xa, p[0]); xb = Math.max(xb, p[0]); ya = Math.min(ya, p[1]); yb = Math.max(yb, p[1]); } };
+      add(b, m);
+      if (b.next) add(b.next, raw[b.next.sec]);
+      const pc = this.pt(m, b.cx, b.cy);
+      const c = Math.min(2.2, vw * 0.9 / Math.max(1, xb - xa), (bot - top) / Math.max(1, yb - ya));
+      return { c, ox: -c * ((xa + xb) / 2 - pc[0]), oy: (top + bot) / 2 - cy - c * ((ya + yb) / 2 - cy) };
+    };
+    let ia = 0;
+    while (ia < this.boxes.length - 2 && this.boxes[ia + 1].cx <= camC) ia++;
+    const ba = this.boxes[ia], bb = this.boxes[Math.min(ia + 1, this.boxes.length - 1)];
+    let u = bb.cx > ba.cx ? Math.max(0, Math.min(1, (camC - ba.cx) / (bb.cx - ba.cx))) : 0;
+    u = u * u * (3 - 2 * u);
+    const FA = fitFor(ia), FB = fitFor(Math.min(ia + 1, this.boxes.length - 1));
+    const cT = Math.exp(Math.log(FA.c) * (1 - u) + Math.log(FB.c) * u), oxT = FA.ox * (1 - u) + FB.ox * u, oT = FA.oy * (1 - u) + FB.oy * u;
+    if (this.fitC == null) { this.fitC = cT; this.fitO = oT; this.fitX = oxT; }
+    const fe = 1 - Math.exp(-dt * 9);
+    this.fitC += (cT - this.fitC) * fe; this.fitO += (oT - this.fitO) * fe; this.fitX += (oxT - this.fitX) * fe;
+    const c = this.fitC, Post = [c, 0, 0, cx * (1 - c) + this.fitX, 0, c, 0, cy * (1 - c) + this.fitO, 0, 0, 1, 0, 0, 0, 0, 1];
+    const fitM = m => this.m4(Post, m);
+    const mats = raw.map(fitM);
+    const key = [camC.toFixed(3), s.toFixed(5), vw, this.state.vh, this.depthAmt(), this.tipSec, this.yaw.toFixed(4), this.pitch.toFixed(4), this.fitC.toFixed(5), this.fitO.toFixed(2), this.fitX.toFixed(2), zp.toFixed(2)].join('|');
+    if (key !== this.lastKey) {
+      this.lastKey = key;
+      this.layerEls.forEach((el, i) => {
+        if (!el) return;
+        const m = mats[i], a = this.pt(m, secs[i].x0, 540), b = this.pt(m, secs[i].x1, 540);
+        const vis = a[2] > 0.08 && b[2] > 0.08 && b[0] > -vw * 0.5 && a[0] < vw * 1.5;
+        el.style.visibility = vis ? 'visible' : 'hidden';
+        if (vis) el.style.transform = this.css(m);
+      });
+      if (this.dustRef.current) this.dustRef.current.style.transform = this.css(fitM(M(this.DUST_Z)));
+      const svg = this.linesRef.current;
+      if (svg && this.lineGeo) {
+        const paths = svg.querySelectorAll('path');
+        this.lineGeo.forEach((g, i) => {
+          if (!paths[i]) return;
+          let str = '';
+          for (const t of g) {
+            if (typeof t === 'string') str += t;
+            else if (t.a) {
+              const h0 = this.ph(mats[t.a[2]], t.a[0], t.a[1]), h1 = this.ph(mats[t.b[2]], t.b[0], t.b[1]), u = t.t;
+              const w = Math.max(0.05, h0[2] + (h1[2] - h0[2]) * u);
+              str += ((h0[0] + (h1[0] - h0[0]) * u) / w).toFixed(1) + ' ' + ((h0[1] + (h1[1] - h0[1]) * u) / w).toFixed(1) + ' ';
+            }
+            else { const p = this.pt(mats[t[2]], t[0], t[1]); str += p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' '; }
+          }
+          paths[i].setAttribute('d', str);
+          if (this.lineDash[i]) { paths[i].setAttribute('stroke-width', Math.max(1, 1.4 * s).toFixed(2)); paths[i].setAttribute('stroke-dasharray', Math.max(2, 9 * s * 1.4).toFixed(1) + ' ' + Math.max(3, 12 * s * 1.4).toFixed(1)); }
+        });
+      }
+    }
+    const A = this.tipAnchor, B = A || this.cardAnchor;
+    let P = null, rs = 0;
+    if (B && mats[B.sec]) {
+      const m = mats[B.sec], q0 = this.pt(m, B.x, B.y), qx = this.pt(m, B.x + B.rx, B.y), qy = this.pt(m, B.x, B.y + B.ry);
+      P = q0; rs = Math.max(Math.abs(qx[0] - q0[0]), Math.abs(qy[1] - q0[1]));
+    }
+    this.updateCards(now, dt, A, B, P, rs, vw, skyH);
+    if (this.skyRef.current) {
+      // info-star sun rays: slow spin, paused while that star is hovered
+      this.rayAng = this.rayAng || {};
+      this.skyRef.current.querySelectorAll('[data-rays]').forEach(el => {
+        const k = el.getAttribute('data-rays');
+        if (k !== this.state.hoverKey) this.rayAng[k] = ((this.rayAng[k] || 0) + dt * 14) % 360;
+        el.style.transform = `rotate(${(this.rayAng[k] || 0).toFixed(2)}deg)`;
+      });
+    }
+    const ring = this.ringRef.current;
+    if (ring) {
+      // cursor ring: 100px with a faint fast pulse, 200px with a slower pulse over a star
+      const hov = !!this.state.hoverKey;
+      this.ringS = (this.ringS ?? 100) + ((hov ? 200 : 100) - (this.ringS ?? 100)) * (1 - Math.exp(-dt * 10));
+      this.ringPh = (this.ringPh || 0) + dt * Math.PI * 2 / (hov ? 3.6 : 2.2);
+      // idle: deep pulse 100%→60% of base size; otherwise the faint 2.5% pulse
+      const sn = Math.sin(this.ringPh), ia = this.hintA || 0;
+      const sz = this.ringS * ((1 + 0.025 * sn) * (1 - ia) + (0.8 + 0.2 * sn) * ia);
+      const show = this.mx != null && this.my != null;
+      ring.style.opacity = show ? '1' : '0';
+      const hint = this.hintRef.current;
+      if (hint) {
+        // after 3s idle: fade in to 0.8, then breathe 0.8 ↔ 0.6
+        const idle = show && !this.drag && now - this.lastAct > 3000;
+        this.hintA = (this.hintA || 0) + ((idle ? 1 : 0) - (this.hintA || 0)) * (1 - Math.exp(-dt * (idle ? 2.5 : 8)));
+        this.hintPh = idle ? (this.hintPh || 0) + dt * Math.PI * 2 / 3 : 0;
+        hint.style.opacity = (this.hintA * (0.7 + 0.1 * Math.cos(this.hintPh))).toFixed(3);
+        if (!hint.firstChild) {
+          const T = (id, s) => `<text fill="#ffffff" style="font-family:Archivo,sans-serif;font-size:10.67px;letter-spacing:0.08em;text-anchor:middle"><textPath href="#${id}" startOffset="50%">${s}</textPath></text>`;
+          hint.innerHTML = `<svg style="position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible"><path id="ringHintTop" fill="none"></path><path id="ringHintBot" fill="none"></path>${T('ringHintTop', 'Drag, Scroll, Hover')}${T('ringHintBot', 'to Traverse The Timeline')}</svg>`;
+        }
+        if (this.hintA > 0.002) {
+          // top arc: baseline just outside the ring; bottom arc runs left→right so glyphs face inward, pushed out by cap height
+          const c = sz / 2, rb = this.ringS / 2, r1 = rb + 7, r2 = rb + 15, ps = hint.querySelectorAll('path');
+          ps[0].setAttribute('d', `M ${c - r1} ${c} A ${r1} ${r1} 0 0 1 ${c + r1} ${c}`);
+          ps[1].setAttribute('d', `M ${c - r2} ${c} A ${r2} ${r2} 0 0 0 ${c + r2} ${c}`);
+        }
+      }
+      if (show) { ring.style.width = ring.style.height = sz.toFixed(2) + 'px'; ring.style.transform = `translate3d(${(this.mx - sz / 2).toFixed(1)}px,${(this.my - sz / 2).toFixed(1)}px,0)`; }
+    }
+    // retarget the orbit once the scroll has settled on a new section
+    if (cs !== this.pendSec) { this.pendSec = cs; this.pendT = now; }
+    if (this.orbitSec == null) this.orbitSec = cs;
+    if (cs !== this.orbitSec && now - this.pendT > 280) { this.orbitSec = cs; this.pickOrbit(); }
+    if (cs !== this.state.centerSec) { this.forceKill = true; this.setState({ centerSec: cs, hoverKey: null }); }
+  }
+
+  // hover pop-ups (chip + photo cards): each flies out of the star centre to a random on-screen spot
+  isVideo(src) { return /\.(mp4|webm)$/i.test(src); }
+  // photo or video for a pop-up card; videos loop silently so they don't compete with the music
+  mediaEl(src) {
+    if (!this.isVideo(src)) { const im = document.createElement('img'); im.src = src; im.alt = ''; im.draggable = false; return im; }
+    const v = document.createElement('video'); v.muted = true; v.defaultMuted = true; v.loop = true; v.playsInline = true; v.autoplay = true; v.preload = 'auto'; v.src = src;
+    v.play().catch(() => {});
+    return v;
+  }
+  spawnCards(A, P, rs, vw, vh) {
+    const host = this.cardsRef.current, E = 12, U = this.UI, u = n => (n * U).toFixed(2) + 'px', PAD = 6 * U, IW = A.imgs.length > 1 ? 220 : 280, placed = [];
+    const inside = r => Math.max(0, Math.min(r[0] + r[2], vw - E) - Math.max(r[0], E)) * Math.max(0, Math.min(r[1] + r[3], vh - E) - Math.max(r[1], E));
+    const ov = (r, q) => Math.max(0, Math.min(r[0] + r[2], q[0] + q[2] + 10) - Math.max(r[0], q[0] - 10)) * Math.max(0, Math.min(r[1] + r[3], q[1] + q[3] + 10) - Math.max(r[1], q[1] - 10));
+    this.cardAnchor = A;
+    [{ chip: true }, ...(A.info ? [{ info: A.info }] : []), ...A.imgs.map(x => typeof x === 'string' ? { src: x } : { src: x.src, scale: x.scale })].forEach((it, k) => {
+      const el = document.createElement('div');
+      let w, h;
+      if (it.chip) {
+        el.style.cssText = `position:absolute;left:0;top:0;display:flex;gap:${u(10)};align-items:center;padding:${u(7)} ${u(12)};border:1px solid rgba(158,152,145,0.5);background:#080504;border-radius:999px;font-family:Archivo,sans-serif;font-size:${u(13)};letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;cursor:default`;
+        el.innerHTML = '<span style="color:#c9c4be;font-weight:600"></span><span style="color:#a9a8a3"></span>';
+        el.children[0].textContent = A.kind; el.children[1].textContent = A.range;
+        host.appendChild(el); w = el.offsetWidth; h = el.offsetHeight;
+      } else if (it.info) {
+        el.style.cssText = `position:absolute;left:0;top:0;width:${u(300)};box-sizing:border-box;padding:${u(16)} ${u(18)} ${u(18)};border:1px solid rgba(158,152,145,0.5);background:#080504;border-radius:${u(14)};box-shadow:0 18px 44px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:${u(10)};font-family:Archivo,sans-serif;cursor:default`;
+        const t = document.createElement('div'); t.textContent = it.info.title;
+        t.style.cssText = `font-size:${u(11)};letter-spacing:0.16em;text-transform:uppercase;font-weight:600;color:#c9c4be`;
+        el.appendChild(t);
+        (it.info.body || []).forEach(s => { const q = document.createElement('div'); q.textContent = s; q.style.cssText = `font-size:${u(14)};line-height:1.5;color:#f4f3ef;text-wrap:pretty`; el.appendChild(q); });
+        host.appendChild(el); w = el.offsetWidth; h = el.offsetHeight;
+      } else {
+        const dim = this.imgDims[it.src] || { w: 4, h: 3 };
+        let iw = Math.min(IW, dim.w), ih = iw * dim.h / dim.w; if (ih > 280) { ih = 280; iw = 280 * dim.w / dim.h; }
+        iw *= (it.scale || 1) * U; ih *= (it.scale || 1) * U;
+        w = iw + PAD * 2 + 2; h = ih + PAD * 2 + 2;
+        el.style.cssText = `position:absolute;left:0;top:0;width:${w}px;height:${h}px;box-sizing:border-box;padding:${PAD}px;border:1px solid rgba(158,152,145,0.2);background:rgba(8,5,4,0.4);border-radius:${u(14)};box-shadow:0 18px 44px rgba(0,0,0,.55);cursor:zoom-in`;
+        const im = this.mediaEl(it.src);
+        im.style.cssText = `display:block;width:${iw}px;height:${ih}px;object-fit:cover;border-radius:${u(9)}`;
+        el.appendChild(im); host.appendChild(el);
+      }
+      el.style.transformOrigin = '50% 50%'; el.style.opacity = '0'; el.style.pointerEvents = 'auto'; el.style.willChange = 'transform,opacity';
+      let best = null, bs = -Infinity;
+      for (let i = 0; i < 60; i++) {
+        const th = Math.random() * Math.PI * 2, cs = Math.cos(th), sn = Math.sin(th);
+        const dist = rs + (it.chip ? 10 : 14) + Math.random() * (it.chip ? 14 : 28) + (w / 2) * Math.abs(cs) + (h / 2) * Math.abs(sn);
+        const r = [P[0] + cs * dist - w / 2, P[1] + sn * dist - h / 2, w, h];
+        const sc = inside(r) - w * h - 2 * placed.reduce((s, q) => s + ov(r, q), 0);
+        if (sc > bs) { bs = sc; best = r; }
+        if (sc >= -1) break;
+      }
+      placed.push(best);
+      const c = { el, key: A.key, lp: P, ox: best[0] + w / 2 - P[0], oy: best[1] + h / 2 - P[1], w, h, p: -k * 0.12, dir: 1, src: it.src };
+      el.addEventListener('mouseenter', () => { if (c.dir < 0) return; if (this.state.hoverKey !== c.key) this.setState({ hoverKey: c.key }); });
+      el.addEventListener('mouseleave', () => { if (this.zoom) return; this.leaveT = performance.now(); this.setState({ hoverKey: null }); });
+      el.addEventListener('pointerdown', e => { e.stopPropagation(); this.lastAct = performance.now(); this.onGesture(); });
+      if (it.src) el.addEventListener('click', e => { e.stopPropagation(); this.openZoom(c); });
+      this.cards.push(c);
+    });
+  }
+  updateCards(now, dt, A, B, P, rs, vw, vh) {
+    if (!this.cardsRef.current) return;
+    let key = A && P ? A.key : null;
+    const kill = () => this.cards.forEach(c => { if (c.dir > 0) { c.dir = -1; c.el.style.pointerEvents = 'none'; } });
+    // section changed: drop the current hover outright
+    if (this.forceKill && !this.zoom) { this.forceKill = false; kill(); this.cardKey = null; this.tipAnchor = null; key = null; }
+    // geometric hover check, so cards sliding under a still cursor can't drop the hover
+    const CK = this.cardKey, mx = this.mx, my = this.my;
+    const keep = !key && CK && mx != null && (
+      (P && B && B.key === CK && Math.hypot(mx - P[0], my - P[1]) < Math.max(rs + 8, 16)) ||
+      this.cards.some(c => c.dir > 0 && c.box && mx >= c.box[0] && mx <= c.box[0] + c.box[2] && my >= c.box[1] && my <= c.box[1] + c.box[3]));
+    if (keep && this.state.hoverKey !== CK) this.setState({ hoverKey: CK });
+    if (this.zoom) this.lostT = null;
+    else if (key && key !== this.cardKey) { kill(); this.spawnCards(A, P, rs, vw, vh); this.cardKey = key; this.lostT = null; }
+    else if (key) this.lostT = null;
+    else if (this.cardKey) { if (keep) this.lostT = null; else if (this.lostT == null) this.lostT = now; else if (now - this.lostT > 600) { kill(); this.cardKey = null; } }
+    const E = 12, back = x => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+    this.cards = this.cards.filter(c => {
+      c.p += dt * c.dir / (c.dir > 0 ? 0.42 : 0.24);
+      if (c.dir < 0 && c.p <= 0) { c.el.remove(); return false; }
+      c.p = Math.min(1, c.p);
+      if (P && B && B.key === c.key) c.lp = P;
+      const q = Math.max(0, c.p), pe = 1 - Math.pow(1 - q, 3), s = 0.08 + 0.92 * back(q), lp = c.lp;
+      const tx = Math.max(E + c.w / 2, Math.min(vw - E - c.w / 2, lp[0] + c.ox)), ty = Math.max(E + c.h / 2, Math.min(vh - E - c.h / 2, lp[1] + c.oy));
+      const cx = lp[0] + (tx - lp[0]) * pe, cy = lp[1] + (ty - lp[1]) * pe;
+      c.el.style.transform = `translate3d(${(cx - c.w / 2).toFixed(1)}px,${(cy - c.h / 2).toFixed(1)}px,0) scale(${s.toFixed(3)})`;
+      c.el.style.opacity = Math.min(1, q * 3).toFixed(3);
+      c.box = [cx - c.w * s / 2, cy - c.h * s / 2, c.w * s, c.h * s];
+      c.el.style.pointerEvents = c.dir > 0 && q > 0.85 ? 'auto' : 'none';
+      return true;
+    });
+  }
+  // click-to-zoom: card grows 3× (capped to the viewport) from its spot to screen centre; any click closes
+  openZoom(c) {
+    const layer = this.zoomRef.current; if (this.zoom || !layer) return;
+    const r = c.el.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight, M = 40;
+    const f = Math.max(1, Math.min(3 / this.UI, (vh - M * 2) / c.h, (vw - M * 2) / c.w));
+    const W = c.w * f, H = c.h * f, L = (vw - W) / 2, T = (vh - H) / 2;
+    const bd = document.createElement('div');
+    bd.style.cssText = 'position:absolute;inset:0;background:rgba(8,5,4,0.8);opacity:0;transition:opacity .35s ease;cursor:zoom-out';
+    const z = document.createElement('div');
+    z.style.cssText = `position:absolute;left:${L}px;top:${T}px;width:${W}px;height:${H}px;box-sizing:border-box;padding:10px;border:1px solid rgba(158,152,145,0.2);background:#080504;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform-origin:0 0;cursor:zoom-out;transition:transform .45s cubic-bezier(.2,.8,.2,1)`;
+    z.style.transform = `translate(${r.left - L}px,${r.top - T}px) scale(${r.width / W})`;
+    const im = this.mediaEl(c.src), cardVid = c.el.querySelector('video');
+    im.style.cssText = 'display:block;width:100%;height:100%;object-fit:cover;border-radius:12px';
+    // the zoomed video carries on from the card's position; only one plays at a time
+    if (cardVid) { im.currentTime = cardVid.currentTime; cardVid.pause(); }
+    z.appendChild(im); layer.append(bd, z);
+    layer.style.pointerEvents = 'auto'; layer.onclick = () => this.closeZoom();
+    c.el.style.visibility = 'hidden';
+    z.getBoundingClientRect();
+    bd.style.opacity = '1'; z.style.transform = 'none';
+    this.zoom = { c, z, bd, L, T, W, cardVid, zoomVid: cardVid ? im : null };
+  }
+  closeZoom() {
+    const Z = this.zoom; if (!Z || Z.closing) return; Z.closing = true;
+    const r = Z.c.el.getBoundingClientRect();
+    Z.z.style.transition = 'transform .35s cubic-bezier(.4,0,.2,1)';
+    Z.z.style.transform = `translate(${r.left - Z.L}px,${r.top - Z.T}px) scale(${r.width / Z.W})`;
+    Z.bd.style.opacity = '0';
+    setTimeout(() => {
+      if (Z.cardVid) { Z.cardVid.currentTime = Z.zoomVid.currentTime; Z.cardVid.play().catch(() => {}); }
+      Z.c.el.style.visibility = ''; Z.z.remove(); Z.bd.remove();
+      if (this.zoomRef.current) { this.zoomRef.current.style.pointerEvents = 'none'; this.zoomRef.current.onclick = null; }
+      this.zoom = null; this.lostT = performance.now(); this.setState({ hoverKey: null });
+    }, 360);
+  }
+
+  renderVals() {
+    const d = this.state.data;
+    const base = {
+      soundLabel: { full: 'Music full', low: 'Music low', off: 'Music off' }[this.state.soundMode], waveRef: this.waveRef,
+      // the icon has both arcs: low clips the outer one, off clips both
+      volClip: { full: 'none', low: 'polygon(0 0,9.5px 0,9.5px 4.7px,15.2px 4.7px,15.2px 13.3px,9.5px 13.3px,9.5px 18px,0 18px)', off: 'inset(0 8.5px 0 0)' }[this.state.soundMode],
+      toggleSound: () => this.setState(s => ({ soundMode: this.SOUND_NEXT[s.soundMode] }), () => { this.initAudio(); this.applySound(); }),
+      startRef: this.startRef, startOp: this.state.centerSec === 0 ? 1 : 0.1, auroraRef: this.auroraRef, navRef: this.navRef, skyRef: this.skyRef, zoomRef: this.zoomRef, ringRef: this.ringRef, hintRef: this.hintRef, cardsRef: this.cardsRef, dustRef: this.dustRef, linesRef: this.linesRef, tipRef: this.tipRef,
+      onSkyMove: e => { const r = this.skyRef.current.getBoundingClientRect(); this.mx = e.clientX - r.left; this.my = e.clientY - r.top; this.lastAct = performance.now(); this.setNavHover(e); },
+      onDragStart: e => {
+        this.lastAct = performance.now();
+        if (e.button !== 0 || !this.state.data || e.target.closest('[data-nav-sound],[data-rail]')) return;
+        this.drag = { x: e.clientX, y: e.clientY, lx: e.clientX, lt: performance.now(), w: this.camW ?? this.targetW, p0: this.pitch || 0, v: 0, axis: null };
+        this.targetW = this.camW; this.snapped = true;
+        this.skyRef.current.style.cursor = 'grabbing';
+      },
+      onSkyLeave: () => { this.mx = null; this.setNavHover(null); if (this.state.hoverKey) this.setState({ hoverKey: null }); },
+    };
+    if (!d) return { ...base, dust: [], lines: [], layers: [], sections: [], tip: false, hud: { idx: '—', total: '—', name: '', projects: '', milestones: '' } };
+
+    const RAYS = [0, 45, 90, 135, 180, 225, 270, 315].map(deg => ({ deg }));
+    const ACC = this.ACC, HOV = '#9e9891', INK = this.INK, DIM = 0.22;
+    const focus = this.props.focusSection ?? true;
+    const showGuides = this.props.showGuides ?? true;
+    const secs = this.sections();
+    const hs = this.state.centerSec, active = hs;
+    const key = this.state.hoverKey;
+    const linked = new Set(); const hotLines = new Set();
+    if (key) d.lines.forEach((l, i) => { if (l.nodes.includes(key)) { hotLines.add(i); l.nodes.forEach(n => linked.add(n)); } });
+    const setKey = k => () => { if (this.state.hoverKey !== k) this.playHover(k); this.setState({ hoverKey: k }); };
+    const clear = () => { this.leaveT = performance.now(); this.setState({ hoverKey: null }); };
+    const pad = n => String(n).padStart(2, '0');
+    const dimmed = sec => focus && hs >= 0 && sec !== hs;
+
+    const layers = secs.map(sec => ({ i: sec.i, z: this.Z[sec.i] ?? 0, ref: this.layerRef(sec.i), stars: [], years: [], guides: [], pill: false }));
+    const nodeSec = {};
+
+    d.stars.forEach(st => {
+      const k = 's' + st.id, on = key === k, near = !on && linked.has(k);
+      const sec = this.secAt(st.x); nodeSec[k] = sec;
+      const size = st.r * 2, hit = Math.max(28, size + 14), style = st.style;
+      const op = dimmed(sec) ? DIM : 1;
+      layers[sec].stars.push({
+        hitLeft: st.x - hit / 2, hitTop: st.y - hit / 2, hit, size,
+        color: on || near ? HOV : INK,
+        // hollow ring (bg-filled so connector lines stop at the edge) until the star has real content attached
+        fill: (st.content || st.image || st.images || st.media || st.text) ? (on || near ? HOV : INK) : (st.info && on ? HOV : '#080504'),
+        pe: sec === hs ? 'auto' : 'none',
+        key: k, rays: st.info ? RAYS : false, rayLen: 6, rayTop: -(st.r * 1.7 + 4 + 6), rayOrig: st.r * 1.7 + 4 + 6,
+        glow: on ? 'rgba(158,152,145,0.7)' : 'rgba(244,243,239,0.35)',
+        glowR: on ? 22 : Math.round(st.r * 1.4), glowS: on ? 4 : 0,
+        scale: on ? 1.7 : near ? 1.25 : 1,
+        label: st.label, lx: st.lx, fs: st.fs,
+        lh: Math.round(st.fs * 1.35), lt: Math.round(st.ly - st.fs * 1.08),
+        font: style === 'c' ? 'Oswald, sans-serif' : 'Archivo, sans-serif',
+        weight: style === 'i' ? 700 : style === 'c' ? 600 : 500,
+        fstyle: style === 'i' ? 'italic' : 'normal',
+        ls: style === 'i' ? '-0.02em' : '0.04em',
+        op, labelOp: op * (key && !on && !near ? 0.55 : 1),
+        enter: setKey(k), leave: clear,
+      });
+    });
+    d.years.forEach((y, i) => {
+      const k = 'y' + y.year, on = key === k || linked.has(k), sec = this.secAt(y.x);
+      nodeSec[k] = sec;
+      // year i closes section i + 1, so a section is bounded by years hs - 1 and hs - 2
+      const bounding = i === hs - 1 || i === hs - 2;
+      const op = (focus && hs >= 0 && !bounding) ? DIM : 1;
+      layers[sec].guides.push({ x: y.x, op: !showGuides ? 0 : (hs >= 0 && bounding) ? 0.35 : 0.1 });
+      if (y.pill) {
+        layers[sec].pill = { left: y.x - 144, pe: bounding ? 'auto' : 'none', op, color: on ? HOV : INK, glow: on ? 'rgba(158,152,145,0.45)' : 'rgba(244,243,239,0.12)', enter: setKey(k), leave: clear };
+        return;
+      }
+      layers[sec].years.push({
+        pe: bounding ? 'auto' : 'none',
+        key: k, cx: y.x, cy: y.y, rays: y.info ? RAYS : false,
+        fill: (y.image || y.images) ? (on ? HOV : INK) : (y.info && key === k ? HOV : '#080504'),
+        op, year: y.year, dotLeft: y.x - 13, dotTop: y.y - 13, hitLeft: y.x - 28, hitTop: y.y - 28,
+        lx: y.lx, lt: y.base - 74,
+        color: on ? HOV : INK, glow: on ? 'rgba(158,152,145,0.6)' : 'rgba(244,243,239,0.4)',
+        enter: setKey(k), leave: clear,
+      });
+    });
+    layers.sort((a, b) => a.z - b.z || a.i - b.i);
+
+    const lines = d.lines.map((l, i) => {
+      const inFocus = !(focus && hs >= 0) || l.nodes.some(n => nodeSec[n] === hs);
+      const col = hotLines.has(i) ? HOV : INK, dash = this.lineDash && this.lineDash[i];
+      return { fill: dash ? 'none' : col, stroke: dash ? col : 'none', op: hotLines.has(i) ? 1 : (inFocus ? (key ? 0.45 : 0.8) : 0.07) };
+    });
+
+    const counts = secs.map(() => ({ p: 0, m: 0 }));
+    d.stars.forEach(st => { const c = counts[this.secAt(st.x)]; st.kind === 'milestone' ? c.m++ : c.p++; });
+    const sections = secs.map(sec => ({
+      // minimized cells show S, the year each section reaches, or F; the active cell shows only its label
+      idx: sec.i === 0 ? 'S' : sec.i > d.years.length ? 'F' : String(d.years[sec.i - 1].year).slice(2), idxDisplay: sec.i === active ? 'none' : 'block', short: sec.short,
+      // the card is narrow: the active section shows its full label, the others only their number
+      flex: sec.i === active ? `0 0 ${Math.max(44, Math.ceil(sec.short.length * 6.6) + 18)}px` : '1 1 0px',
+      pad: sec.i === active ? 8 : 4, align: sec.i === active ? 'left' : 'center', nameDisplay: sec.i === active ? 'block' : 'none',
+      edge: sec.i === 0 ? 'transparent' : 'rgba(255,255,255,0.12)',
+      railBg: sec.i === active ? 'rgba(255,255,255,0.08)' : 'transparent',
+      go: () => this.goSection(sec.i),
+    }));
+
+    let tip = false; this.tipAnchor = null;
+    if (key) {
+      let x, y, kind, imgs = [], info = null, rx = 10, ry = 10;
+      if (key[0] === 's') { const st = d.stars.find(q => 's' + q.id === key); x = st.x; y = st.y - st.r - 16; kind = st.kind === 'milestone' ? 'Milestone' : 'Project'; imgs = st.images || (st.image ? [st.image] : []); info = st.info || null; rx = ry = st.r * 1.7; }
+      else { const yr = d.years.find(q => 'y' + q.year === key); x = yr.x; y = yr.y - (yr.pill ? 80 : 26); kind = 'Year ' + yr.year; imgs = yr.images || (yr.image ? [yr.image] : []); info = yr.info || null; rx = yr.pill ? 144 : 13; ry = yr.pill ? 63 : 13; y = yr.pill ? 394 : yr.y; if (yr.pill) x = 7009; }
+      const sec = nodeSec[key] ?? this.secAt(x);
+      this.tipSec = sec;
+      tip = { kind, range: secs[sec].name };
+      this.tipAnchor = { x, y: key[0] === 's' ? d.stars.find(q => 's' + q.id === key).y : y, rx, ry, sec, imgs, info, key, kind, range: secs[sec].name };
+    }
+    const a = secs[active];
+    return {
+      ...base, dust: this.dust, lines, layers, sections, tip,
+      hud: { idx: pad(active), total: pad(secs.length - 1), name: a.name, projects: counts[active].p, milestones: counts[active].m },
+    };
+  }
+}
+</script>
+</body>
+</html>

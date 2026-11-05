@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Braga Technologies · 7th Anniversary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=League+Gothic&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #080504; overflow: hidden; }
+  body { color: #fff; user-select: none; -webkit-user-select: none; transition: opacity .5s ease; }
+  body:not(.ready) { opacity: 0; }
+  body.ready { animation: pageIn .8s ease backwards; }
+  body.leaving { opacity: 0; }
+  @keyframes pageIn { from { opacity: 0; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); visibility: hidden; } to { opacity: 1; transform: none; visibility: visible; } }
+  .enter { visibility: hidden; }
+  body.ready .enter { animation: rise .98s cubic-bezier(.2,.8,.2,1) both; }
+  body.ready .m1 { animation-delay: 1.12s; }
+  body.ready .m2 { animation-delay: 2.212s; }
+  body.ready #cta { animation-delay: 3.304s; }
+  @media (prefers-reduced-motion: reduce) { @keyframes rise { from { opacity: 0; visibility: hidden; } to { opacity: 1; visibility: visible; } } }
+  #aurora, #stars { position: fixed; inset: 0; pointer-events: none; }
+  #stars { width: 100%; height: 100%; }
+  #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #content { display: flex; flex-direction: column; align-items: center; gap: 80px; width: 653.214px; flex-shrink: 0; }
+  #logo { display: block; flex-shrink: 0; }
+  #lockup { position: relative; flex-shrink: 0; width: 653.214px; height: 155px; }
+  #lockup .dot { position: absolute; width: 11.071px; height: 8.304px; border-radius: 22.143px; background: #fff; }
+  #message { width: 440px; flex-shrink: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 500; font-size: 24px; line-height: 1.12; text-align: center; text-transform: uppercase; opacity: .8; white-space: pre-wrap; }
+  #message p { margin: 0; }
+  /* 10px at the 0.8 default scale is 8px on screen */
+  #cta { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; flex-shrink: 0; }
+  #accept { flex-shrink: 0; box-sizing: border-box; width: 314px; display: flex; align-items: center; gap: 6.729px; padding: 10.951px 18.951px; border: 1.049px solid #fff; border-radius: 26.411px; background: #fff; cursor: pointer; font: 600 15.7px/normal 'Barlow Condensed', sans-serif; color: #070504; white-space: nowrap; transition: background .2s, border-color .2s; }
+  #accept:hover { background: #9e9891; border-color: #9e9891; }
+  #arrow { flex: 1 0 0; min-width: 1px; height: 0; position: relative; }
+  #arrow img { position: absolute; left: 0; top: -6.194px; display: block; }
+  #volume { width: 100%; margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 500; font-size: 12px; line-height: 1.12; text-align: center; text-transform: uppercase; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div id="aurora"></div>
+<svg id="stars" viewBox="0 -108 2160 1296" preserveAspectRatio="xMinYMid slice" aria-hidden="true"></svg>
+<main id="stage">
+  <div id="content">
+    <img id="logo" src="uploads/intro/logo-braga.svg" alt="Braga Technologies" draggable="false">
+    <div id="lockup" role="img" aria-label="Seven years in and the journey is still going">
+      <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:27.679px;letter-spacing:3.3214px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#fff;left:83.04px;top:121.79px">the journey</span>
+      <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:27.679px;letter-spacing:3.3214px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#fff;left:520.36px;top:0">is still</span>
+      <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:27.679px;letter-spacing:3.3214px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#fff;left:579.87px;top:113.48px">going</span>
+      <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:27.679px;letter-spacing:3.3214px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#fff;left:0;top:35.98px">Seven years in</span>
+      <span style="position:absolute;font-family:'League Gothic',sans-serif;font-size:27.679px;letter-spacing:3.3214px;line-height:normal;text-transform:uppercase;white-space:nowrap;color:#fff;left:319.69px;top:9.69px">and</span>
+      <img src="uploads/intro/logo-event-line.svg" alt="" draggable="false" style="position:absolute;display:block;left:151.03px;top:40.139px">
+      <div style="position:absolute;box-sizing:border-box;left:567.41px;top:103.79px;width:85.804px;height:51.205px;border:2.768px solid #fff;border-radius:22.143px"></div>
+      <div class="dot" style="left:516.21px;top:37.37px"></div>
+      <div class="dot" style="left:217.28px;top:117.63px"></div>
+      <div class="dot" style="left:305.85px;top:37.37px"></div>
+      <div class="dot" style="left:145.31px;top:77.5px"></div>
+    </div>
+    <div id="message"><div class="enter m1"><p>as we welcome our 7th year OF BEING A part of BRAGA TECHNOLOGIES, WE’RE INVITING YOU to another year of excellence </p></div><p>&#8203;</p><div class="enter m2"><p>WITH THIS CELEBRATION OF WHAT COMES AFTER, </p><p>LIES APPRECIATION &amp; GRATITUDE OF WHAT’s BEFORE.</p></div></div>
+    <div id="cta" class="enter">
+      <button id="accept" type="button"><span>ACCEPT INVITATION</span><span id="arrow"><img src="uploads/intro/arrow.svg" alt="" draggable="false"></span></button>
+      <p id="volume">FOR BEST EXPERIENCE,  TURN VOLUME ON.</p>
+    </div>
+  </div>
+</main>
+<script src="./sky.js"></script>
+<script>
+(function () {
+  const BGM_LOW = 0.12, W = 12556.6, H = 1080;
+
+  // same stars as the timeline, framed like its first section
+  const stars = document.getElementById('stars'), NS = 'http://www.w3.org/2000/svg';
+  BragaSky.dust(W, H).filter(p => p.x >= 0 && p.x <= 4200).forEach(p => {
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', p.r); c.setAttribute('fill', '#f4f3ef'); c.setAttribute('opacity', p.o);
+    stars.appendChild(c);
+  });
+
+  const aurora = BragaSky.aurora(document.getElementById('aurora'), { grey: true, getCam: () => 720 });
+  (function frame() { aurora.tick(); requestAnimationFrame(frame); })();
+
+  // default size is 80% of the design; shrink further only if a short or narrow window needs it
+  const content = document.getElementById('content');
+  function fit() { content.style.zoom = Math.min(0.8, (innerHeight - 32) / 639, (innerWidth - 32) / 653.214); }
+  addEventListener('resize', fit); fit();
+
+  // start the entrance once the fonts are in, so the lockup text never swaps during the fade
+  const begin = () => document.body.classList.add('ready');
+  Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 800))]).then(begin, begin);
+
+  // music: low volume, no controls here. It tries to play as soon as the page opens; where the browser's
+  // autoplay policy blocks that, the audio waits ready and starts on the first interaction it counts
+  let au = null;
+  const bgmP = fetch('uploads/space-music.mp3').then(r => r.arrayBuffer()).catch(() => null);
+  function startAudio() {
+    if (au) { au.ctx.resume(); return; }
+    const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return;
+    const ctx = new Ctx(), master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+    au = { ctx, master };
+    ctx.resume();
+    master.gain.linearRampToValueAtTime(BGM_LOW, ctx.currentTime + 1.2);
+    bgmP.then(ab => ab && ctx.decodeAudioData(ab)).then(buf => {
+      if (!buf || ctx.state === 'closed') return;
+      // same seamless loop as the timeline: trim encoder silence, then overlap with an equal-power crossfade
+      const d = buf.getChannelData(0), th = 0.002; let a = 0, b = d.length - 1;
+      while (a < b && Math.abs(d[a]) < th) a++; while (b > a && Math.abs(d[b]) < th) b--;
+      const t0 = a / buf.sampleRate, len = (b - a) / buf.sampleRate, XF = Math.min(4, len / 4), N = 128, fin = new Float32Array(N), fout = new Float32Array(N);
+      for (let i = 0; i < N; i++) { const x = i / (N - 1) * Math.PI / 2; fin[i] = Math.sin(x); fout[i] = Math.cos(x); }
+      const loop = (when, first) => {
+        const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = buf; src.connect(g); g.connect(master);
+        if (first) g.gain.value = 1; else { g.gain.value = 0; g.gain.setValueCurveAtTime(fin, when, XF); }
+        g.gain.setValueCurveAtTime(fout, when + len - XF, XF);
+        src.start(when, t0, len);
+        const next = when + len - XF;
+        const queue = () => { au.timer = setTimeout(() => ctx.state === 'running' ? loop(next, false) : queue(), Math.max(1000, (next - ctx.currentTime - 2) * 1000)); };
+        queue();
+      };
+      loop(ctx.currentTime + 0.05, true);
+    }).catch(() => {});
+  }
+  startAudio();
+  ['pointerdown', 'pointerup', 'mousedown', 'touchend', 'click', 'keydown'].forEach(type => addEventListener(type, startAudio));
+  document.addEventListener('visibilitychange', () => { if (au) document.hidden ? au.ctx.suspend() : au.ctx.resume(); });
+
+  // accepting opens the constellation
+  let leaving = false;
+  function setGain(v, secs) { if (!au) return; const g = au.master.gain, t = au.ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(v, t + secs); }
+  document.getElementById('accept').addEventListener('click', () => {
+    if (leaving) return; leaving = true;
+    try { sessionStorage.setItem('braga7.accepted', '1'); } catch (e) {}
+    setGain(0, 0.5);
+    document.body.classList.add('leaving');
+    setTimeout(() => location.assign('timeline.html'), 520);
+  });
+  // coming back with the browser's Back button restores the page as it was left
+  addEventListener('pageshow', e => { if (!e.persisted) return; leaving = false; document.body.classList.remove('leaving'); setGain(BGM_LOW, 0.8); });
+})();
+</script>
+</body>
+</html>
