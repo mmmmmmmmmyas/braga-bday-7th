@@ -40,6 +40,10 @@ The prototype is a "Design Component" (`timeline.html`) rendered by a small prop
 ## Fidelity
 **High-fidelity.** Final colours, type, spacing, motion and audio. Recreate pixel- and timing-accurately.
 
+## Deployment
+
+GitHub `mmmmmmmmmyas/braga-bday-7th`, deployed on Vercel at https://braga-bday-7th.vercel.app as a static site with no build step. Every push to `main` deploys automatically.
+
 ## Screen: Intro (`index.html`, Figma `89:674`)
 
 - Full-viewport invitation, centred: Braga logo, event lockup, message, "Accept invitation" button, volume note. Column gap 80px, 653px wide, 639px tall at design size, rendered at 80% (523 × 511px), and scaled down further only when the window is too small to fit it. The volume note sits 8px under the button on screen.
@@ -91,7 +95,7 @@ World canvas 12556.6 × 1080. Fields:
 Order: chip → info card (if any) → images. Each element:
 - **Chip**: flex, gap 10px, padding `7px 12px`, `border:1px solid rgba(158,152,145,.5)`, bg `#080504`, radius 999px, Archivo 13px, 0.12em, uppercase, nowrap. Left span = kind ("Project" / "Milestone" / "Year 2019") `#c9c4be` 600; right span = section name ("2019 → 2020") `#a9a8a3`.
 - **Info card**: width 300px, padding `16px 18px 18px`, `border:1px solid rgba(158,152,145,.5)`, bg `#080504`, radius 14px, shadow `0 18px 44px rgba(0,0,0,.55)`, column gap 10px. Title 11px / 0.16em uppercase 600 `#c9c4be`; each body paragraph 14px / 1.5 `#f4f3ef`, `text-wrap:pretty`.
-- **Video in pop-ups**: an `image` or `images` entry ending in `.mp4` or `.webm` renders as a muted, looping, autoplaying video, sized like a photo from its native dimensions. Clicking zooms it like a photo, and the zoomed copy continues from the same position while the card's copy pauses.
+- **Video in pop-ups**: an `image` or `images` entry ending in `.mp4` or `.webm` renders as a muted, looping, autoplaying video, sized like a photo from its native dimensions. Clicking zooms it like a photo: the zoomed copy continues from the same position while the card's copy pauses, plays its sound at 50% volume with no controls, and the music ramps to 10% of its full level over 0.4s (or stays off if the music is off). Closing mutes the video at once and restores the music over 0.8s.
 - **Photo card**: padding 6px, `border:1px solid rgba(158,152,145,.2)`, bg `rgba(8,5,4,.4)`, radius 14px, same shadow, `cursor:zoom-in`. Image radius 9px, `object-fit:cover`. Size: native px width, capped at 280 (220 when the node has ≥2 images), height capped 280 (keep ratio), then × `scale`.
 
 ## Interactions & Behavior
@@ -114,7 +118,7 @@ Order: chip → info card (if any) → images. Each element:
 
 ### Cursor ring (sky only, hidden when pointer leaves)
 - 1px `rgba(244,243,239,.35)` circle centred on the cursor. Size eases (`1 − e^(−10dt)`) to 100px (no hover) / 200px (hovering a node). Pulse `±2.5%`, period 2.2s (3.6s while hovering).
-- **Idle hint** after 3s with no move/scroll/drag/key: blend factor fades in (rate 2.5/s, out 8/s). Ring pulse becomes 100% ↔ 60% of its base size (same period). Arched text via SVG `<textPath>`: "Drag, Scroll, Hover" on the top arc (radius base/2 + 7), "to Traverse The Timeline" on the bottom arc (radius base/2 + 15, drawn left→right so glyphs read upright). Archivo 10.67px (8pt), 0.08em, white; opacity 0.8 ↔ 0.6 (3s cosine loop). Text radius stays on the base (non-pulsing) size.
+- **Idle hint** after 250ms with no move/scroll/drag/key: blend factor fades in (rate 2.5/s, out 8/s). Ring pulse becomes 100% ↔ 60% of its base size (same period). Arched text via SVG `<textPath>`: "Drag, Scroll, Hover" on the top arc (radius base/2 + 7), "to Traverse The Timeline" on the bottom arc (radius base/2 + 15, drawn left→right so glyphs read upright). Archivo 10.67px (8pt), 0.08em, white; opacity 0.8 ↔ 0.6 (3s cosine loop). Text radius stays on the base (non-pulsing) size.
 
 ### Audio (Web Audio API)
 - Sound ON by default; context resumes on first `pointerdown`/`keydown` (browser autoplay policy). Suspended when tab hidden.

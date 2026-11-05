@@ -167,7 +167,9 @@ class Component extends DCLogic {
   // stars are framed above this strip, where the old bottom rail sat, so they stay clear of the timeline card
   RAIL = 72 * this.UI;
   // gain per sound mode: music fades down and out, hover SFX stays audible and drops in 'off'
-  BGM_GAIN = { full: 0.385, low: 0.12, off: 0 }; SFX_GAIN = { full: 0.6, low: 0.6, off: 0.3 }; SOUND_NEXT = { full: 'low', low: 'off', off: 'full' };
+  BGM_GAIN = { full: 0.385, low: 0.12, off: 0 }; SFX_GAIN = { full: 0.6, low: 0.6, off: 0.3 };
+  // while a zoomed video plays its sound: video at 50%, music at 10% of its full level
+  VIDEO_VOLUME = 0.5; BGM_DUCKED = 0.385 * 0.1; SOUND_NEXT = { full: 'low', low: 'off', off: 'full' };
   // zoom level per section: Starting Point, D0→19, 19→20, 20→21, 21→22, 22→23, 23→24, 24→25, 25→26, 26→27
   Z = [0, 0, 0, 20, 20, 40, 60, 60, 40, 70, 70]; DUST_Z = -30;
   ACC = 'oklch(0.86 0.13 85)'; INK = '#f4f3ef';
@@ -203,7 +205,10 @@ class Component extends DCLogic {
     this.onGesture = () => { this.initAudio(); this.au && this.au.ctx.resume(); };
     window.addEventListener('pointerdown', this.onGesture);
     window.addEventListener('keydown', this.onGesture);
-    this.onVis = () => { if (!this.au) return; document.hidden ? this.au.ctx.suspend() : this.au.ctx.resume(); };
+    this.onVis = () => {
+      const zv = this.zoom && this.zoom.zoomVid; if (zv) document.hidden ? zv.pause() : zv.play().catch(() => {});
+      if (!this.au) return; document.hidden ? this.au.ctx.suspend() : this.au.ctx.resume();
+    };
     document.addEventListener('visibilitychange', this.onVis);
     this.initAudio(); if (this.au) this.au.ctx.resume().catch(() => {});
     this.onDragMove = e => {
@@ -327,11 +332,11 @@ class Component extends DCLogic {
     const next = when + len - XF;
     au.timer = setTimeout(() => this.loopFrom(next, false), Math.max(0, (next - ctx.currentTime - 2) * 1000));
   }
-  applySound() {
+  applySound(secs = 1.2) {
     const au = this.au; if (!au) return;
     const t = au.ctx.currentTime, gn = au.master.gain;
     au.ctx.resume();
-    gn.cancelScheduledValues(t); gn.setValueAtTime(gn.value, t); gn.linearRampToValueAtTime(this.BGM_GAIN[this.state.soundMode], t + 1.2);
+    gn.cancelScheduledValues(t); gn.setValueAtTime(gn.value, t); gn.linearRampToValueAtTime(this.duckBgm ? Math.min(this.BGM_GAIN[this.state.soundMode], this.BGM_DUCKED) : this.BGM_GAIN[this.state.soundMode], t + secs);
     au.sfx.gain.setTargetAtTime(this.SFX_GAIN[this.state.soundMode], t, 0.05);
   }
   playHover(k) {
@@ -596,8 +601,8 @@ class Component extends DCLogic {
       ring.style.opacity = show ? '1' : '0';
       const hint = this.hintRef.current;
       if (hint) {
-        // after 3s idle: fade in to 0.8, then breathe 0.8 ↔ 0.6
-        const idle = show && !this.drag && now - this.lastAct > 3000;
+        // after 250ms idle: fade in to 0.8, then breathe 0.8 ↔ 0.6
+        const idle = show && !this.drag && now - this.lastAct > 250;
         this.hintA = (this.hintA || 0) + ((idle ? 1 : 0) - (this.hintA || 0)) * (1 - Math.exp(-dt * (idle ? 2.5 : 8)));
         this.hintPh = idle ? (this.hintPh || 0) + dt * Math.PI * 2 / 3 : 0;
         hint.style.opacity = (this.hintA * (0.7 + 0.1 * Math.cos(this.hintPh))).toFixed(3);
@@ -725,7 +730,13 @@ class Component extends DCLogic {
     const im = this.mediaEl(c.src), cardVid = c.el.querySelector('video');
     im.style.cssText = 'display:block;width:100%;height:100%;object-fit:cover;border-radius:12px';
     // the zoomed video carries on from the card's position; only one plays at a time
-    if (cardVid) { im.currentTime = cardVid.currentTime; cardVid.pause(); }
+    if (cardVid) {
+      im.currentTime = cardVid.currentTime; cardVid.pause();
+      // the click allows sound: the zoomed copy is audible and the music ducks; the hover card stays silent
+      im.volume = this.VIDEO_VOLUME; im.muted = false;
+      im.play().catch(() => { im.muted = true; im.play().catch(() => {}); });
+      this.initAudio(); this.duckBgm = true; this.applySound(0.4);
+    }
     z.appendChild(im); layer.append(bd, z);
     layer.style.pointerEvents = 'auto'; layer.onclick = () => this.closeZoom();
     c.el.style.visibility = 'hidden';
@@ -735,6 +746,7 @@ class Component extends DCLogic {
   }
   closeZoom() {
     const Z = this.zoom; if (!Z || Z.closing) return; Z.closing = true;
+    if (Z.zoomVid) { Z.zoomVid.muted = true; this.duckBgm = false; this.applySound(0.8); }
     const r = Z.c.el.getBoundingClientRect();
     Z.z.style.transition = 'transform .35s cubic-bezier(.4,0,.2,1)';
     Z.z.style.transform = `translate(${r.left - Z.L}px,${r.top - Z.T}px) scale(${r.width / Z.W})`;
