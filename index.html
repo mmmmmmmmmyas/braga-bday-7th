@@ -43,7 +43,8 @@
   .field input:focus { border-color: #fff; }
   .field input::placeholder { color: rgba(255,255,255,0.32); }
   #name { text-transform: uppercase; }
-  .note { margin: 2px 0 0; font-size: 12px; line-height: 1.12; color: rgba(255,255,255,0.56); }
+  .note { margin: 2px 0 0; font-size: 12px; line-height: 1.12; color: rgba(255,255,255,0.56); transition: color .2s; }
+  .note.err, #names .empty.err { color: #ff5f57; }
   #names { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; margin: 4px 0 0; padding: 4px; list-style: none; max-height: 168px; overflow-y: auto; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.32); border-radius: 8px; background: #080504; }
   #names[hidden] { display: none; }
   #names li { padding: 6px 8px; border-radius: 6px; font-size: 16px; line-height: 1.12; text-transform: uppercase; cursor: pointer; }
@@ -57,9 +58,12 @@
   #accept:hover { background: #9e9891; border-color: #9e9891; }
   /* Figma 100:2089: Back + Accept as, 314px together */
   /* skip login: plain text button between Accept invitation and the volume note, only before the form opens */
+  /* only offered when running locally; hidden on the deployed site */
+  #skip { display: none; }
+  body.local #skip { display: inline-block; }
   #skip { margin: 0; padding: 2px 4px; border: 0; background: none; color: #fff; font: 500 12px/1.12 'Barlow Condensed', sans-serif; text-transform: uppercase; text-decoration: underline; text-decoration-thickness: from-font; text-underline-position: from-font; cursor: pointer; opacity: .8; transition: color .2s, opacity .2s; }
   #skip:hover { color: #9e9891; opacity: 1; }
-  body.signing #skip { display: none; }
+  body.signing #skip, body.local.signing #skip { display: none; }
   #pair { display: none; gap: 1px; width: 314px; flex-shrink: 0; }
   body.signing #accept { display: none; }
   body.signing #pair { display: flex; animation: pairIn .35s ease; }
@@ -129,7 +133,7 @@
 (function () {
   const BGM_LOW = 0.12, W = 12556.6, H = 1080;
   // Supabase: the publishable key is meant for browsers; the staff table itself is unreadable without the two functions below
-  const SUPABASE_URL = '', SUPABASE_KEY = 'sb_publishable_aeeNe84Iyg9ZeEqXByzr1g_f3JfPT6m';
+  const SUPABASE_URL = 'https://ccdjweiqawhvammtajxu.supabase.co', SUPABASE_KEY = 'sb_publishable_aeeNe84Iyg9ZeEqXByzr1g_f3JfPT6m';
   const rpc = (fn, body) => fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
     .then(r => { if (!r.ok) throw new Error('Supabase ' + r.status); return r.json(); });
 
@@ -203,14 +207,24 @@
   const nameIn = $('name'), emailIn = $('email'), list = $('names'), acceptAs = $('acceptAs'), asLabel = $('asLabel');
   const note = document.querySelector('.note'), NOTE = note.textContent;
   let crew = [], picked = null, active = -1, busy = false;
-  const loadNames = () => SUPABASE_URL ? rpc('crew_names').then(d => { crew = Array.isArray(d) ? d : []; }) : Promise.reject(new Error('Supabase URL not set'));
-  let namesP = loadNames().catch(() => {});
-  const say = msg => { note.textContent = msg || NOTE; };
+  // loads the name list once; a failure is only retried when the person types or focuses the field again, never in a loop
+  let names = 'idle';
+  function ensureNames() {
+    if (names === 'loading' || names === 'ready') return;
+    names = 'loading';
+    (SUPABASE_URL ? rpc('crew_names') : Promise.reject(new Error('Supabase URL not set')))
+      .then(d => { crew = Array.isArray(d) ? d : []; names = 'ready'; }, () => { names = 'error'; })
+      .then(() => render());
+  }
+  ensureNames();
+  const say = msg => { note.textContent = msg || NOTE; note.classList.toggle('err', !!msg); };
   const norm = v => v.trim().replace(/\s+/g, ' ').toLowerCase();
+  // first real name for the button: skips initials and abbreviations such as "M." or "Moch."
+  const firstName = n => { const w = n.trim().split(/\s+/); return w.find(x => !x.endsWith('.') && x.length > 1) || w[0]; };
   function setPicked(m) {
     picked = m;
     acceptAs.setAttribute('aria-disabled', m ? 'false' : 'true');
-    asLabel.textContent = m ? 'ACCEPT AS ' + m.name.split(' ')[0].toUpperCase() : 'ACCEPT AS';
+    asLabel.textContent = m ? 'ACCEPT AS ' + firstName(m.name).toUpperCase() : 'ACCEPT AS';
     acceptAs.setAttribute('aria-label', m ? 'Accept as ' + m.name : 'Accept as, choose your name first');
   }
   function matches() {
@@ -221,7 +235,7 @@
     const m = matches(); active = Math.min(active, m.length - 1);
     list.innerHTML = '';
     if (!nameIn.value.trim() || document.activeElement !== nameIn) { list.hidden = true; nameIn.setAttribute('aria-expanded', 'false'); return; }
-    if (!m.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = crew.length ? 'No match in the crew list' : 'Loading names…'; list.appendChild(li); if (!crew.length) namesP = namesP.then(() => crew.length || loadNames()).catch(() => {}).then(render); }
+    if (!m.length) { const li = document.createElement('li'); li.className = names === 'error' ? 'empty err' : 'empty'; li.textContent = names === 'ready' ? 'No match in the crew list' : names === 'error' ? "Couldn't load the crew list" : 'Loading names…'; list.appendChild(li); }
     m.forEach((c, i) => {
       const li = document.createElement('li'); li.id = 'name-opt-' + i; li.setAttribute('role', 'option'); li.setAttribute('aria-selected', i === active ? 'true' : 'false'); if (i === active) li.className = 'on';
       li.textContent = c.name;
@@ -234,9 +248,9 @@
   function choose(c) { nameIn.value = c.name; setPicked(c); active = -1; list.hidden = true; nameIn.setAttribute('aria-expanded', 'false'); emailIn.focus(); }
   nameIn.addEventListener('input', () => {
     // typing the full name counts as picking it; anything else needs a pick from the list
-    setPicked(crew.find(m => norm(m.name) === norm(nameIn.value)) || null); active = -1; render();
+    setPicked(crew.find(m => norm(m.name) === norm(nameIn.value)) || null); active = -1; ensureNames(); render();
   });
-  nameIn.addEventListener('focus', render);
+  nameIn.addEventListener('focus', () => { ensureNames(); render(); });
   nameIn.addEventListener('blur', () => setTimeout(render, 0));
   nameIn.addEventListener('keydown', e => {
     const m = matches();
@@ -250,6 +264,7 @@
   function openSignin() { document.body.classList.add('signing'); setTimeout(() => nameIn.focus(), 380); }
   function closeSignin() { document.body.classList.remove('signing'); list.hidden = true; $('accept').focus(); }
   $('accept').addEventListener('click', openSignin);
+  if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) document.body.classList.add('local');
   // for now: straight to the timeline as a guest, with no sign-in
   $('skip').addEventListener('click', () => {
     try { sessionStorage.setItem('braga7.profile', JSON.stringify({ guest: true, name: 'Guest', tag: '—', year: '—', email: '', title: '' })); } catch (e) {}
