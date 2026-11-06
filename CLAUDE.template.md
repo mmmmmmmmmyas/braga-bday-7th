@@ -5,6 +5,9 @@ Read `README.md` for the full spec. These rules are the user's established direc
 ## Pages
 - `index.html` is the intro and entry point. `timeline.html` is the constellation, reachable only after accepting the invitation. `sky.js` holds the shared stars and aurora.
 
+## Sign in
+- The intro's Accept invitation opens a Name + Work email form in place of the message, at its size. "Accept as" is inactive until a name is picked, then shows the first name; the work email is checked as a password by Supabase's `sign_in()`. Only names reach the browser. Staff data lives in Supabase, never in the repo (`supabase/*.private.sql` is git-ignored).
+
 ## Working style
 - Make ONLY the change requested. Don't restyle, re-space or "improve" anything else.
 - Be concise in replies. Summarise changes in 1–3 lines.
@@ -26,6 +29,18 @@ Read `README.md` for the full spec. These rules are the user's established direc
 ## Starting Point
 - The crew card stays at the exact page centre, horizontally and vertically, when the camera rests on section 00. The rest of the set is positioned relative to it. The set renders at 75% of design size, keeps full opacity until section 01 takes focus (80% of the way there), then fades to 10%.
 
+## Timeline entrance
+- Never white on load. Soft fade from a dark cover, with a loading ring only if loading is slow. Then in order: top nav and timeline card fly in and fade in, crew card pops in with a slight zoom from a random tilt to front-facing, then the invitation note and info blocks fade in.
+
+## Small crew card
+- Past Starting Point, a 50% copy of the crew card sits 20px from the bottom-left corner, with the same hover tilt. It floats up with the entrance tilt and zoom, and reverses down on returning to Starting Point.
+
+## Scroll hint card
+- Bottom-right, 20px from the edges, scaled to the timeline bar's 41px height. Enters and leaves with the small crew card, in the same way.
+
+## Crew card hover
+- On both the main and small card: tilt of 12° at most per axis, starting within 30px of the card, building as the cursor nears, strongest touching its rim and sides.
+
 ## Locked interactions
 - Scroll / horizontal drag travel the timeline with 0.8× sensitivity (20% resistance), momentum on release, soft-snap to nearest section from section 01 onward (no snapping between Starting Point and section 01, which are 400 apart by a spacer).
 - Vertical drag tilts pitch, clamped ±10°. Drag locks to one axis after 6px.
@@ -34,5 +49,5 @@ Read `README.md` for the full spec. These rules are the user's established direc
 - Pop-ups persist while the cursor is on the star OR any card; 600ms grace after leaving.
 - Images start at native resolution (never upscaled), capped 280px (220px when multiple), then × the 0.85 UI scale. Per-image `scale` supported. `.mp4` / `.webm` entries work as media too, muted and looping on hover. Zooming one plays its sound at 50%, with no volume control, and drops the music to 10% until closed.
 - Click a photo → zoom 3× (capped to viewport − 40px margin) to centre over a dim backdrop; click anywhere or Esc closes.
-- Cursor ring: 100px at rest (2.5% pulse, 2.2s), 200px over a star (slower 3.6s pulse). After 250ms idle: ring pulses 100%↔60%, arched text "Drag, Scroll, Hover" (top) / "to Traverse The Timeline" (bottom), 8pt white, opacity 0.8↔0.6; text path stays on the base radius.
-- Audio: BGM `space-music.mp3` loops with silence-trim + 4s equal-power crossfade, master 0.385, sound ON by default (starts on first gesture). Top nav volume icon cycles full → low (BGM 0.12, SFX unchanged) → off (no BGM, SFX at half volume, 0.3); its soundwave reads the audible mix. Hover SFX `hover.mp3`: single voice, 8ms attack, 70ms retrigger guard, compressor.
+- Cursor ring: 100px at rest (2.5% pulse, 2.2s), 200px over a star (slower 3.6s pulse). After 400ms idle: ring pulses 100%↔60%, arched text "Drag, Scroll, Hover" (top) / "to Traverse The Timeline" (bottom), 8pt white, opacity 0.8↔0.6; text path stays on the base radius.
+- Audio: BGM `space-music.mp3` loops with silence-trim + 4s equal-power crossfade, master 0.385. The timeline defaults to no music with SFX at 0.3 (starts on first gesture). Top nav volume icon cycles full → low (BGM 0.12, SFX unchanged) → off (no BGM, SFX at half volume, 0.3); its soundwave reads the audible mix. Hover SFX `hover.mp3`: single voice, 8ms attack, 70ms retrigger guard, compressor.

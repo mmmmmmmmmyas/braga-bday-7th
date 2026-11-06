@@ -5,3 +5,6 @@ Thumbs.db
 *.log
 .env
 .env.*
+
+# private staff data for Supabase
+supabase/*.private.sql

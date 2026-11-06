@@ -1,22 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html style="background:#080504">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<style>
+  /* set here, ahead of the runtime, so the page is never white while it boots */
+  html, body { margin: 0; background: #080504; }
+  #cover { position: fixed; inset: 0; z-index: 50; background: #080504; pointer-events: none; display: flex; align-items: center; justify-content: center; transition: opacity .7s ease; }
+  #cover.gone { opacity: 0; }
+  /* only appears if loading takes a moment */
+  #cover i { display: block; width: 44px; height: 44px; box-sizing: border-box; border: 1px solid rgba(244,243,239,0.35); border-radius: 50%; opacity: 0; animation: coverIn .4s ease .35s forwards, coverPulse 2.2s ease-in-out .35s infinite; }
+  #cover.gone i { animation-play-state: paused; }
+  @keyframes coverIn { to { opacity: 1; } }
+  @keyframes coverPulse { 50% { transform: scale(.72); } }
+  /* entrance: nav bars, then the crew card, then the text blocks */
+  body:not(.tl-ready) [data-enter] { opacity: 0; }
+  @keyframes navDown { from { opacity: 0; transform: translateY(-32px); } }
+  @keyframes navUp { from { opacity: 0; transform: translate(-50%, 32px); } to { opacity: 1; transform: translateX(-50%); } }
+  @keyframes cardIn { from { opacity: 0; transform: perspective(900px) rotateX(var(--rx, 8deg)) rotateY(var(--ry, -12deg)) rotateZ(var(--rz, 3deg)) scale(.86); } to { opacity: 1; transform: perspective(900px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1); } }
+  @keyframes textIn { from { opacity: 0; } }
+  body.tl-ready [data-enter="nav-top"] { animation: navDown .9s cubic-bezier(.2,.8,.2,1) .8s backwards; }
+  body.tl-ready [data-enter="nav-bottom"] { animation: navUp .9s cubic-bezier(.2,.8,.2,1) .8s backwards; }
+  body.tl-ready [data-enter="card"] { animation: cardIn 1s cubic-bezier(.2,1.12,.35,1) 1.4s backwards; }
+  body.tl-ready [data-enter="text"] { animation: textIn .9s ease 2s backwards; }
+  /* small crew card, bottom-left once past Starting Point. Transitions so a change of direction mid-way reverses smoothly */
+  [data-mini], [data-hint] { position: absolute; left: 20px; bottom: 20px; width: 120px; height: 127.5px; pointer-events: none; opacity: 0; visibility: hidden; transform-origin: 50% 100%;
+    transform: translateY(160px) perspective(900px) rotateX(var(--rx, 8deg)) rotateY(var(--ry, -12deg)) rotateZ(var(--rz, 3deg)) scale(.86);
+    transition: transform .95s cubic-bezier(.5,0,.85,.6), opacity .45s ease-in .5s, visibility 0s linear .95s; }
+  /* scroll hint, bottom-right: Figma 176 × 71, scaled to the 41px timeline bar */
+  [data-hint] { left: auto; right: 20px; width: 101.63px; height: 41px; }
+  [data-mini][data-on="1"], [data-hint][data-on="1"] { opacity: 1; visibility: visible;
+    transform: translateY(0) perspective(900px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+    transition: transform 1s cubic-bezier(.2,1.12,.35,1), opacity .5s ease, visibility 0s; }
+  @media (prefers-reduced-motion: reduce) {
+    [data-mini], [data-mini][data-on="1"], [data-hint], [data-hint][data-on="1"] { transform: none; }
+    @keyframes navDown { from { opacity: 0; } }
+    @keyframes navUp { from { opacity: 0; transform: translateX(-50%); } to { opacity: 1; transform: translateX(-50%); } }
+    @keyframes cardIn { from { opacity: 0; } }
+    #cover i { animation: coverIn .4s ease .35s forwards; }
+  }
+</style>
 <title>Braga Technologies · The Journey</title>
 <script>
-// the constellation opens only after the invitation on the intro page is accepted
-try { if (!sessionStorage.getItem('braga7.accepted')) location.replace('index.html'); } catch (e) {}
+// the constellation opens only after signing in on the intro page
+try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem('braga7.profile')) location.replace('index.html'); } catch (e) {}
 </script>
 <script src="./sky.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
+<div id="cover" role="status" aria-label="Loading"><i></i></div>
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,700&amp;family=Barlow+Condensed:wght@500&amp;family=League+Gothic&amp;family=Oswald:wght@500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,700&amp;family=Barlow+Condensed:wght@400;500&amp;family=League+Gothic&amp;family=Oswald:wght@500;600&amp;display=swap" rel="stylesheet">
 <style>html,body{margin:0;height:100%;background:#080504;overflow:hidden}a{color:#f4f3ef}a:hover{color:#9e9891}</style>
 </helmet>
 <div style="position:fixed;inset:0;background:#080504;color:#f4f3ef;font-family:Archivo,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none">
@@ -75,19 +114,19 @@ try { if (!sessionStorage.getItem('braga7.accepted')) location.replace('index.ht
     </sc-for>
     <div ref="{{ startRef }}" style="position:absolute;left:0;top:0;pointer-events:none;visibility:hidden;opacity:{{ startOp }};transition:opacity .5s ease;will-change:transform">
       <div style="zoom:0.75;width:1400px;height:340px;display:flex;align-items:center;gap:137px">
-      <p style="flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px">Scroll to the end of the timeline to collect your invitation.</p>
-      <div style="flex-shrink:0;box-sizing:border-box;width:320px;height:340px;padding:30px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;border:2px solid rgba(255,255,255,0.12);border-radius:16px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,0.08));-webkit-backdrop-filter:blur(4.5px);backdrop-filter:blur(4.5px);font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase">
-        <div style="flex-shrink:0;width:100%;display:flex;justify-content:space-between;align-items:flex-start;font-size:20px;line-height:1.12;color:rgba(255,255,255,0.56);white-space:nowrap"><span>Crew # 001</span><span>2019</span></div>
+      <p data-enter="text" style="flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px">Scroll to the end of the timeline to collect your invitation.</p>
+      <div data-enter="card" style="flex-shrink:0;box-sizing:border-box;width:320px;height:340px;padding:30px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;border:2px solid rgba(255,255,255,0.12);border-radius:16px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,0.08));-webkit-backdrop-filter:blur(4.5px);backdrop-filter:blur(4.5px);font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase">
+        <div style="flex-shrink:0;width:100%;display:flex;justify-content:space-between;align-items:flex-start;font-size:20px;line-height:1.12;color:rgba(255,255,255,0.56);white-space:nowrap"><span>Crew # {{ crew.tag }}</span><span>EST. {{ crew.year }}</span></div>
         <div style="flex-shrink:0;width:102px;height:102px;border-radius:16px;background:#d9d9d9"></div>
-        <div style="flex-shrink:0;white-space:nowrap"><div style="font-size:24px;line-height:1.32;color:#fff">Dirga Sumantri</div><div style="font-size:20px;line-height:1.32;color:rgba(255,255,255,0.32)">ceo@braga.co.id</div></div>
-        <div style="flex-shrink:0;font-size:24px;line-height:1.12;color:rgba(255,255,255,0.56);white-space:nowrap">CEO</div>
+        <div style="flex-shrink:0;width:100%"><div style="font-size:24px;line-height:1.12;color:#fff;overflow-wrap:anywhere">{{ crew.name }}</div><div style="font-size:20px;line-height:1.32;color:rgba(255,255,255,0.32);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ crew.email }}</div></div>
+        <div style="flex-shrink:0;width:100%;font-size:24px;line-height:1.12;color:rgba(255,255,255,0.56)">{{ crew.title }}</div>
       </div>
-      <div style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
+      <div data-enter="text" style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
         <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;width:100%">NAVIGATION</p>
         <div style="position:relative;flex-shrink:0;width:100px;height:32px"><img src="uploads/starting/nav-pill-arrow.svg" alt="" draggable="false" style="position:absolute;display:block;left:-1.050px;top:-1.050px"></div>
         <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px;opacity:0.8"><span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Hold</span> &amp; <span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Drag</span> the space. LET’s TRAVERSE THROUGH THE MEMORY LANE.</p>
       </div>
-      <div style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
+      <div data-enter="text" style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
         <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;width:100%">STELLAR-CLASSIFICATION</p>
         <div style="position:relative;flex-shrink:0;width:242px;height:92px">
           <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:0;top:79px">MEMORIES</p>
@@ -105,7 +144,14 @@ try { if (!sessionStorage.getItem('braga7.accepted')) location.replace('index.ht
       </div>
       </div>
     </div>
-    <div style="position:absolute;top:20px;left:20px;right:20px;pointer-events:none">
+    <div ref="{{ miniRef }}" data-mini="1" aria-hidden="true"></div>
+    <div ref="{{ hintCardRef }}" data-hint="1">
+      <div style="zoom:0.57746;box-sizing:border-box;width:176px;height:71px;padding:15px;display:flex;align-items:flex-start;gap:8px;border:1px solid rgba(255,255,255,0.32);border-radius:8.974px">
+        <img src="uploads/hint/arrow-up-to-arc.svg" alt="" draggable="false" style="display:block;flex-shrink:0;width:20px;height:20px;transform:rotate(90deg)">
+        <p style="flex:1 0 0;min-width:1px;margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:400;font-size:12px;line-height:1.12;letter-spacing:0.12px;text-transform:uppercase;white-space:nowrap;color:#fff">Scroll to the end of the<br>timeline to collect your<br>invitation.</p>
+      </div>
+    </div>
+    <div data-enter="nav-top" style="position:absolute;top:20px;left:20px;right:20px;pointer-events:none">
     <div ref="{{ navRef }}" style="zoom:0.85;box-sizing:border-box;padding:11px 23px;border:1.18px solid rgba(236,235,231,calc(0.32 * var(--nav-op,0.5)));transition:border-color .2s;border-radius:13.41px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center">
       <img src="uploads/nav/logo-braga.svg" alt="Braga Technologies" draggable="false" style="display:block;justify-self:start;opacity:var(--nav-op,0.5);transition:opacity .2s">
       <div role="img" aria-label="Seven years in and the journey is still going" style="position:relative;flex-shrink:0;width:134px;height:31.983px">
@@ -129,7 +175,7 @@ try { if (!sessionStorage.getItem('braga7.accepted')) location.replace('index.ht
       </div>
     </div>
     </div>
-    <div style="position:absolute;left:50%;bottom:29px;width:331px;transform:translateX(-50%);box-sizing:border-box;padding:0 11px;border:1px solid rgba(255,255,255,0.32);border-radius:8px;overflow:hidden;pointer-events:none">
+    <div data-enter="nav-bottom" style="position:absolute;left:50%;bottom:20px;width:331px;transform:translateX(-50%);box-sizing:border-box;padding:0 11px;border:1px solid rgba(255,255,255,0.32);border-radius:8px;overflow:hidden;pointer-events:none">
       <div style="width:100%;height:39px;pointer-events:auto">
         <div style="zoom:0.85;width:100%;height:100%;display:flex">
           <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="11">
@@ -153,8 +199,8 @@ try { if (!sessionStorage.getItem('braga7.accepted')) location.replace('index.ht
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;depth&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;},&quot;orbitTilt&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:10,&quot;min&quot;:0,&quot;max&quot;:20,&quot;step&quot;:1,&quot;unit&quot;:&quot;°&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;focusSection&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showGuides&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
 class Component extends DCLogic {
-  state = { soundMode: 'full', data: null, vw: 1200, vh: 800, hoverSec: -1, centerSec: 0, hoverKey: null };
-  skyRef = React.createRef(); dustRef = React.createRef(); linesRef = React.createRef(); tipRef = React.createRef(); cardsRef = React.createRef(); ringRef = React.createRef(); zoomRef = React.createRef(); hintRef = React.createRef(); waveRef = React.createRef(); navRef = React.createRef(); auroraRef = React.createRef(); startRef = React.createRef(); lastAct = performance.now(); cards = []; imgDims = {};
+  state = { soundMode: 'off', data: null, vw: 1200, vh: 800, hoverSec: -1, centerSec: 0, hoverKey: null };
+  skyRef = React.createRef(); dustRef = React.createRef(); linesRef = React.createRef(); tipRef = React.createRef(); cardsRef = React.createRef(); ringRef = React.createRef(); zoomRef = React.createRef(); hintRef = React.createRef(); waveRef = React.createRef(); navRef = React.createRef(); auroraRef = React.createRef(); startRef = React.createRef(); miniRef = React.createRef(); hintCardRef = React.createRef(); lastAct = performance.now(); cards = []; imgDims = {};
   layerEls = []; layerRefFns = [];
   camW = null; targetW = 0; mx = null; tipSec = -1; snapped = true; wheelT = 0; boxes = [];
   W = 12556.6; H = 1080;
@@ -179,7 +225,7 @@ class Component extends DCLogic {
       this.dust = this.makeDust();
       this.prepLines(data);
       [...data.stars, ...data.years].forEach(st => (st.images || (st.image ? [st.image] : [])).map(x => typeof x === 'string' ? x : x.src).forEach(src => { if (this.isVideo(src)) { const v = document.createElement('video'); v.preload = 'metadata'; v.muted = true; v.onloadedmetadata = () => { this.imgDims[src] = { w: v.videoWidth, h: v.videoHeight }; }; v.src = src; return; } const im = new Image(); im.onload = () => { this.imgDims[src] = { w: im.naturalWidth, h: im.naturalHeight }; }; im.src = src; }));
-      this.setState({ data });
+      this.setState({ data }, () => this.revealWhenReady());
     });
     this.onResize = () => this.setState({ vw: window.innerWidth, vh: window.innerHeight });
     this.onResize();
@@ -233,7 +279,8 @@ class Component extends DCLogic {
     window.addEventListener('pointerup', this.onDragEnd);
     window.addEventListener('pointercancel', this.onDragEnd);
     this.initAurora();
-    const tick = () => { this.tick(); this.tickStart(); this.tickWave(); this.tickAurora(); this.raf = requestAnimationFrame(tick); };
+    setTimeout(() => this.revealWhenReady(), 8000);
+    const tick = () => { this.tick(); this.tickStart(); this.tickCardTilt(); this.tickMiniCard(); this.tickWave(); this.tickAurora(); this.raf = requestAnimationFrame(tick); };
     this.raf = requestAnimationFrame(tick);
   }
   componentWillUnmount() {
@@ -263,10 +310,81 @@ class Component extends DCLogic {
     const el = this.startRef.current; if (!el || !this.boxes.length || this.camW == null) return;
     const vw = this.state.vw, Z = 0.75, CARD_X = 482 * Z, CARD_Y = 170 * Z, half = v => Math.round(v * 2) / 2;
     const x = half(vw / 2 - CARD_X + (this.boxes[0].cx - this.camW) * this.scale() * (this.fitC || 1)), y = half(this.state.vh / 2 - CARD_Y);
+    this.cardRect = { l: x + 322 * Z, t: y, w: 320 * Z, h: 340 * Z };
     const show = x < vw && x + 1400 * Z > 0, key = `${x}|${y}|${show}`;
     if (key === this.startKey) return; this.startKey = key;
     el.style.visibility = show ? 'visible' : 'hidden';
     if (show) el.style.transform = `translate3d(${x}px,${y}px,0)`;
+  }
+  // the signed-in person, from the intro page
+  profile() {
+    if (this.prof) return this.prof;
+    let p = {}; try { p = JSON.parse(sessionStorage.getItem('braga7.profile') || '{}') || {}; } catch (e) {}
+    return (this.prof = { tag: p.tag || '—', year: p.year || '—', name: p.name || '', email: p.email || '', title: p.title || '' });
+  }
+  // past Starting Point the crew card lives bottom-left at 50% of its size, floating up and untilting on the way in
+  tickMiniCard() {
+    const host = this.miniRef.current, main = this.cardEl; if (!host || !main || !this.started) return;
+    const on = this.state.centerSec !== 0; if (on === this.miniOn) return; this.miniOn = on;
+    if (on) {
+      if (!host.firstChild) {
+        const copy = main.cloneNode(true); copy.removeAttribute('data-enter');
+        copy.style.transform = ''; copy.style.animation = 'none'; copy.style.zoom = 0.375; // 0.75 display scale × 50%
+        host.appendChild(copy);
+      }
+    }
+    // the scroll hint, bottom-right, enters and leaves with it; each gets a fresh tilt per entry unless still on its way out
+    for (const el of [host, this.hintCardRef.current]) {
+      if (!el) continue;
+      if (on && getComputedStyle(el).visibility === 'hidden') {
+        const r = (a, b) => ((a + Math.random() * (b - a)) * (Math.random() < 0.5 ? -1 : 1)).toFixed(1) + 'deg';
+        el.style.setProperty('--rx', r(6, 12)); el.style.setProperty('--ry', r(10, 18)); el.style.setProperty('--rz', r(2, 5));
+      }
+      el.dataset.on = on ? '1' : '0';
+    }
+  }
+  // crew card hover tilt, on the main card and the small one: wakes within 30px, builds faster the closer the cursor gets, and peaks on the rim
+  tiltTarget(R) {
+    if (this.mx == null || this.my == null || this.drag || this.zoom) return [0, 0];
+    const MAX = 12, REACH = 30, cx = R.l + R.w / 2, cy = R.t + R.h / 2, dx = this.mx - cx, dy = this.my - cy;
+    const away = Math.hypot(Math.max(Math.abs(dx) - R.w / 2, 0), Math.max(Math.abs(dy) - R.h / 2, 0));
+    if (away >= REACH) return [0, 0];
+    const nx = Math.max(-1, Math.min(1, dx / (R.w / 2))), ny = Math.max(-1, Math.min(1, dy / (R.h / 2)));
+    const e = Math.max(Math.min(1, (Math.max(Math.abs(nx), Math.abs(ny)) - 0.15) / 0.85), 0), rim = e * e * (3 - 2 * e), near = Math.pow(1 - away / REACH, 1.5);
+    // the side nearest the cursor presses away from the viewer
+    return [-MAX * ny * rim * near, MAX * nx * rim * near];
+  }
+  applyTilt(el, T, target, k) {
+    T.x = (T.x || 0) + (target[0] - (T.x || 0)) * k; T.y = (T.y || 0) + (target[1] - (T.y || 0)) * k;
+    const flat = Math.abs(T.x) < 0.01 && Math.abs(T.y) < 0.01 && !target[0] && !target[1];
+    const v = flat ? '' : `perspective(900px) rotateX(${T.x.toFixed(2)}deg) rotateY(${T.y.toFixed(2)}deg)`;
+    if (v !== T.v) { T.v = v; el.style.transform = v; }
+  }
+  tickCardTilt() {
+    const R = this.cardRect; if (!R) return;
+    const el = this.cardEl || (this.cardEl = document.querySelector('[data-enter="card"]')); if (!el) return;
+    // the entrance animation owns the transform until it has finished
+    if (!this.cardLive) { if (!document.body.classList.contains('tl-ready') || el.getAnimations().length) return; this.cardLive = true; }
+    const now = performance.now(), dt = Math.min(0.05, (now - (this.tiltT || now)) / 1000), k = 1 - Math.exp(-dt * 10); this.tiltT = now;
+    this.applyTilt(el, this.tiltMain || (this.tiltMain = {}), this.state.centerSec === 0 ? this.tiltTarget(R) : [0, 0], k);
+    const mini = this.miniRef.current && this.miniRef.current.firstElementChild; if (!mini) return;
+    const W = 120, H = 127.5, E = 20;
+    this.applyTilt(mini, this.tiltMini || (this.tiltMini = {}), this.miniOn ? this.tiltTarget({ l: E, t: this.state.vh - E - H, w: W, h: H }) : [0, 0], k);
+  }
+  // lifts the loading cover and starts the entrance once data, fonts and the first camera frame are in
+  revealWhenReady() {
+    if (this.revealed) return; this.revealed = true;
+    const start = () => {
+      if (this.started) return; this.started = true;
+      const r = (a, b) => (a + Math.random() * (b - a)) * (Math.random() < 0.5 ? -1 : 1), st = document.body.style;
+      st.setProperty('--rx', r(6, 12).toFixed(1) + 'deg'); st.setProperty('--ry', r(10, 18).toFixed(1) + 'deg'); st.setProperty('--rz', r(2, 5).toFixed(1) + 'deg');
+      document.body.classList.add('tl-ready');
+      const cover = document.getElementById('cover'); if (!cover) return;
+      cover.classList.add('gone'); setTimeout(() => cover.remove(), 800);
+    };
+    const faces = ['600 86px Oswald', '500 20px Archivo', '500 18px "Barlow Condensed"', '10px "League Gothic"'].map(f => document.fonts.load(f).catch(() => {}));
+    const fontsIn = Promise.race([Promise.all(faces), new Promise(ok => setTimeout(ok, 2500))]);
+    fontsIn.then(() => requestAnimationFrame(() => requestAnimationFrame(start)));
   }
   initAurora() { if (this.auroraRef.current && !this.aur) this.aur = BragaSky.aurora(this.auroraRef.current, { getCam: () => this.camW || 0 }); }
   tickAurora() { if (this.aur) this.aur.tick(); }
@@ -601,8 +719,8 @@ class Component extends DCLogic {
       ring.style.opacity = show ? '1' : '0';
       const hint = this.hintRef.current;
       if (hint) {
-        // after 250ms idle: fade in to 0.8, then breathe 0.8 ↔ 0.6
-        const idle = show && !this.drag && now - this.lastAct > 250;
+        // after 400ms idle: fade in to 0.8, then breathe 0.8 ↔ 0.6
+        const idle = show && !this.drag && now - this.lastAct > 400;
         this.hintA = (this.hintA || 0) + ((idle ? 1 : 0) - (this.hintA || 0)) * (1 - Math.exp(-dt * (idle ? 2.5 : 8)));
         this.hintPh = idle ? (this.hintPh || 0) + dt * Math.PI * 2 / 3 : 0;
         hint.style.opacity = (this.hintA * (0.7 + 0.1 * Math.cos(this.hintPh))).toFixed(3);
@@ -766,7 +884,7 @@ class Component extends DCLogic {
       // the icon has both arcs: low clips the outer one, off clips both
       volClip: { full: 'none', low: 'polygon(0 0,9.5px 0,9.5px 4.7px,15.2px 4.7px,15.2px 13.3px,9.5px 13.3px,9.5px 18px,0 18px)', off: 'inset(0 8.5px 0 0)' }[this.state.soundMode],
       toggleSound: () => this.setState(s => ({ soundMode: this.SOUND_NEXT[s.soundMode] }), () => { this.initAudio(); this.applySound(); }),
-      startRef: this.startRef, startOp: this.state.centerSec === 0 ? 1 : 0.1, auroraRef: this.auroraRef, navRef: this.navRef, skyRef: this.skyRef, zoomRef: this.zoomRef, ringRef: this.ringRef, hintRef: this.hintRef, cardsRef: this.cardsRef, dustRef: this.dustRef, linesRef: this.linesRef, tipRef: this.tipRef,
+      miniRef: this.miniRef, hintCardRef: this.hintCardRef, crew: this.profile(), startRef: this.startRef, startOp: this.state.centerSec === 0 ? 1 : 0.1, auroraRef: this.auroraRef, navRef: this.navRef, skyRef: this.skyRef, zoomRef: this.zoomRef, ringRef: this.ringRef, hintRef: this.hintRef, cardsRef: this.cardsRef, dustRef: this.dustRef, linesRef: this.linesRef, tipRef: this.tipRef,
       onSkyMove: e => { const r = this.skyRef.current.getBoundingClientRect(); this.mx = e.clientX - r.left; this.my = e.clientY - r.top; this.lastAct = performance.now(); this.setNavHover(e); },
       onDragStart: e => {
         this.lastAct = performance.now();

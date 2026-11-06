@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background:#080504">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,10 +30,50 @@
   #lockup .dot { position: absolute; width: 11.071px; height: 8.304px; border-radius: 22.143px; background: #fff; }
   #message { width: 440px; flex-shrink: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 500; font-size: 24px; line-height: 1.12; text-align: center; text-transform: uppercase; opacity: .8; white-space: pre-wrap; }
   #message p { margin: 0; }
+  #message { transition: opacity .35s ease, visibility 0s linear 0s; }
+  /* sign in: takes the message's place, at exactly its size */
+  #msgwrap { position: relative; flex-shrink: 0; width: 440px; }
+  body.signing #message { opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .3s; }
+  #signin { position: absolute; inset: 0; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; border: 2px solid rgba(255,255,255,0.12); border-radius: 16px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.08)); -webkit-backdrop-filter: blur(4.5px); backdrop-filter: blur(4.5px); font-family: 'Barlow Condensed', sans-serif; font-weight: 500; color: #fff; text-align: left;
+    opacity: 0; visibility: hidden; transform: scale(.97); transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s; }
+  body.signing #signin { opacity: 1; visibility: visible; transform: none; transition: opacity .35s ease .1s, transform .35s ease .1s, visibility 0s; }
+  .field { position: relative; display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 12px; line-height: 1.12; letter-spacing: 0.02em; text-transform: uppercase; color: rgba(255,255,255,0.56); }
+  .field input { box-sizing: border-box; width: 100%; height: 32px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.32); border-radius: 8px; background: rgba(8,5,4,0.4); color: #fff; font: 500 16px/1 'Barlow Condensed', sans-serif; outline: none; transition: border-color .2s; }
+  .field input:focus { border-color: #fff; }
+  .field input::placeholder { color: rgba(255,255,255,0.32); }
+  #name { text-transform: uppercase; }
+  .note { margin: 2px 0 0; font-size: 12px; line-height: 1.12; color: rgba(255,255,255,0.56); }
+  #names { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; margin: 4px 0 0; padding: 4px; list-style: none; max-height: 168px; overflow-y: auto; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.32); border-radius: 8px; background: #080504; }
+  #names[hidden] { display: none; }
+  #names li { padding: 6px 8px; border-radius: 6px; font-size: 16px; line-height: 1.12; text-transform: uppercase; cursor: pointer; }
+  #names li.on, #names li:hover { background: rgba(255,255,255,0.08); }
+  #names li small { display: block; font-size: 12px; text-transform: none; color: rgba(255,255,255,0.56); }
+  #names .empty { cursor: default; color: rgba(255,255,255,0.56); }
+  #names .empty:hover { background: none; }
   /* 10px at the 0.8 default scale is 8px on screen */
   #cta { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; flex-shrink: 0; }
   #accept { flex-shrink: 0; box-sizing: border-box; width: 314px; display: flex; align-items: center; gap: 6.729px; padding: 10.951px 18.951px; border: 1.049px solid #fff; border-radius: 26.411px; background: #fff; cursor: pointer; font: 600 15.7px/normal 'Barlow Condensed', sans-serif; color: #070504; white-space: nowrap; transition: background .2s, border-color .2s; }
   #accept:hover { background: #9e9891; border-color: #9e9891; }
+  /* Figma 100:2089: Back + Accept as, 314px together */
+  /* skip login: plain text button between Accept invitation and the volume note, only before the form opens */
+  #skip { margin: 0; padding: 2px 4px; border: 0; background: none; color: #fff; font: 500 12px/1.12 'Barlow Condensed', sans-serif; text-transform: uppercase; text-decoration: underline; text-decoration-thickness: from-font; text-underline-position: from-font; cursor: pointer; opacity: .8; transition: color .2s, opacity .2s; }
+  #skip:hover { color: #9e9891; opacity: 1; }
+  body.signing #skip { display: none; }
+  #pair { display: none; gap: 1px; width: 314px; flex-shrink: 0; }
+  body.signing #accept { display: none; }
+  body.signing #pair { display: flex; animation: pairIn .35s ease; }
+  @keyframes pairIn { from { opacity: 0; } }
+  #back, #acceptAs { box-sizing: border-box; display: flex; align-items: center; padding: 10.951px 18.951px; border: 1.049px solid #fff; border-radius: 26.411px; font: 600 15.7px/normal 'Barlow Condensed', sans-serif; white-space: nowrap; cursor: pointer; -webkit-backdrop-filter: blur(3.364px); backdrop-filter: blur(3.364px); transition: background .2s, border-color .2s, color .2s, opacity .25s; }
+  #back { flex-shrink: 0; width: 69px; background: none; color: #fff; }
+  #back:hover { border-color: #9e9891; color: #9e9891; }
+  #acceptAs { width: 244px; gap: 6.729px; background: #fff; color: #070504; }
+  #acceptAs:not([aria-disabled="true"]):hover { background: #9e9891; border-color: #9e9891; }
+  #acceptAs[aria-disabled="true"] { opacity: .35; cursor: not-allowed; }
+  #asLabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  /* the arrow keeps its head and gives up length when the name is long */
+  #asArrow { flex: 1 0 0; min-width: 24px; height: 12.387px; position: relative; overflow: hidden; }
+  #asArrow img { position: absolute; right: 0; top: 0; display: block; }
   #arrow { flex: 1 0 0; min-width: 1px; height: 0; position: relative; }
   #arrow img { position: absolute; left: 0; top: -6.194px; display: block; }
   #volume { width: 100%; margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 500; font-size: 12px; line-height: 1.12; text-align: center; text-transform: uppercase; white-space: pre-wrap; }
@@ -58,9 +98,28 @@
       <div class="dot" style="left:305.85px;top:37.37px"></div>
       <div class="dot" style="left:145.31px;top:77.5px"></div>
     </div>
+    <div id="msgwrap">
     <div id="message"><div class="enter m1"><p>as we welcome our 7th year OF BEING A part of BRAGA TECHNOLOGIES, WE’RE INVITING YOU to another year of excellence </p></div><p>&#8203;</p><div class="enter m2"><p>WITH THIS CELEBRATION OF WHAT COMES AFTER, </p><p>LIES APPRECIATION &amp; GRATITUDE OF WHAT’s BEFORE.</p></div></div>
+    <form id="signin" autocomplete="off" aria-label="Sign in" novalidate>
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="names" placeholder="Type to find your name" spellcheck="false">
+        <ul id="names" role="listbox" hidden></ul>
+      </div>
+      <div class="field">
+        <label for="email">Work email</label>
+        <input id="email" type="email" inputmode="email" placeholder="you@braga.co.id" spellcheck="false">
+        <p class="note">No work email? use "team@braga.co.id" to sign in</p>
+      </div>
+    </form>
+    </div>
     <div id="cta" class="enter">
       <button id="accept" type="button"><span>ACCEPT INVITATION</span><span id="arrow"><img src="uploads/intro/arrow.svg" alt="" draggable="false"></span></button>
+      <div id="pair">
+        <button id="back" type="button">BACK</button>
+        <button id="acceptAs" type="button" aria-disabled="true"><span id="asLabel">ACCEPT AS</span><span id="asArrow"><img src="uploads/intro/arrow-accept-as.svg" alt="" draggable="false"></span></button>
+      </div>
+      <button id="skip" type="button">Skip login</button>
       <p id="volume">FOR BEST EXPERIENCE,  TURN VOLUME ON.</p>
     </div>
   </div>
@@ -69,6 +128,10 @@
 <script>
 (function () {
   const BGM_LOW = 0.12, W = 12556.6, H = 1080;
+  // Supabase: the publishable key is meant for browsers; the staff table itself is unreadable without the two functions below
+  const SUPABASE_URL = '', SUPABASE_KEY = 'sb_publishable_aeeNe84Iyg9ZeEqXByzr1g_f3JfPT6m';
+  const rpc = (fn, body) => fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
+    .then(r => { if (!r.ok) throw new Error('Supabase ' + r.status); return r.json(); });
 
   // same stars as the timeline, framed like its first section
   const stars = document.getElementById('stars'), NS = 'http://www.w3.org/2000/svg';
@@ -127,12 +190,86 @@
   // accepting opens the constellation
   let leaving = false;
   function setGain(v, secs) { if (!au) return; const g = au.master.gain, t = au.ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(v, t + secs); }
-  document.getElementById('accept').addEventListener('click', () => {
+  function leave() {
     if (leaving) return; leaving = true;
     try { sessionStorage.setItem('braga7.accepted', '1'); } catch (e) {}
     setGain(0, 0.5);
     document.body.classList.add('leaving');
     setTimeout(() => location.assign('timeline.html'), 520);
+  }
+
+  // sign in: "Accept invitation" opens the form in place of the message; pick a name, then the work email works as the password
+  const $ = id => document.getElementById(id);
+  const nameIn = $('name'), emailIn = $('email'), list = $('names'), acceptAs = $('acceptAs'), asLabel = $('asLabel');
+  const note = document.querySelector('.note'), NOTE = note.textContent;
+  let crew = [], picked = null, active = -1, busy = false;
+  const loadNames = () => SUPABASE_URL ? rpc('crew_names').then(d => { crew = Array.isArray(d) ? d : []; }) : Promise.reject(new Error('Supabase URL not set'));
+  let namesP = loadNames().catch(() => {});
+  const say = msg => { note.textContent = msg || NOTE; };
+  const norm = v => v.trim().replace(/\s+/g, ' ').toLowerCase();
+  function setPicked(m) {
+    picked = m;
+    acceptAs.setAttribute('aria-disabled', m ? 'false' : 'true');
+    asLabel.textContent = m ? 'ACCEPT AS ' + m.name.split(' ')[0].toUpperCase() : 'ACCEPT AS';
+    acceptAs.setAttribute('aria-label', m ? 'Accept as ' + m.name : 'Accept as, choose your name first');
+  }
+  function matches() {
+    const q = norm(nameIn.value); if (!q) return [];
+    return crew.filter(m => norm(m.name).includes(q)).sort((a, b) => norm(b.name).startsWith(q) - norm(a.name).startsWith(q)).slice(0, 6);
+  }
+  function render() {
+    const m = matches(); active = Math.min(active, m.length - 1);
+    list.innerHTML = '';
+    if (!nameIn.value.trim() || document.activeElement !== nameIn) { list.hidden = true; nameIn.setAttribute('aria-expanded', 'false'); return; }
+    if (!m.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = crew.length ? 'No match in the crew list' : 'Loading names…'; list.appendChild(li); if (!crew.length) namesP = namesP.then(() => crew.length || loadNames()).catch(() => {}).then(render); }
+    m.forEach((c, i) => {
+      const li = document.createElement('li'); li.id = 'name-opt-' + i; li.setAttribute('role', 'option'); li.setAttribute('aria-selected', i === active ? 'true' : 'false'); if (i === active) li.className = 'on';
+      li.textContent = c.name;
+      li.addEventListener('mousedown', e => { e.preventDefault(); choose(c); });
+      list.appendChild(li);
+    });
+    list.hidden = false; nameIn.setAttribute('aria-expanded', 'true');
+    if (active >= 0) nameIn.setAttribute('aria-activedescendant', 'name-opt-' + active); else nameIn.removeAttribute('aria-activedescendant');
+  }
+  function choose(c) { nameIn.value = c.name; setPicked(c); active = -1; list.hidden = true; nameIn.setAttribute('aria-expanded', 'false'); emailIn.focus(); }
+  nameIn.addEventListener('input', () => {
+    // typing the full name counts as picking it; anything else needs a pick from the list
+    setPicked(crew.find(m => norm(m.name) === norm(nameIn.value)) || null); active = -1; render();
+  });
+  nameIn.addEventListener('focus', render);
+  nameIn.addEventListener('blur', () => setTimeout(render, 0));
+  nameIn.addEventListener('keydown', e => {
+    const m = matches();
+    if (e.key === 'ArrowDown' && m.length) { e.preventDefault(); active = (active + 1) % m.length; render(); }
+    else if (e.key === 'ArrowUp' && m.length) { e.preventDefault(); active = (active - 1 + m.length) % m.length; render(); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0 && m[active]) choose(m[active]); else if (m.length === 1) choose(m[0]); }
+  });
+  emailIn.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); acceptAs.click(); } });
+  emailIn.addEventListener('input', () => say());
+  $('signin').addEventListener('submit', e => e.preventDefault());
+  function openSignin() { document.body.classList.add('signing'); setTimeout(() => nameIn.focus(), 380); }
+  function closeSignin() { document.body.classList.remove('signing'); list.hidden = true; $('accept').focus(); }
+  $('accept').addEventListener('click', openSignin);
+  // for now: straight to the timeline as a guest, with no sign-in
+  $('skip').addEventListener('click', () => {
+    try { sessionStorage.setItem('braga7.profile', JSON.stringify({ guest: true, name: 'Guest', tag: '—', year: '—', email: '', title: '' })); } catch (e) {}
+    leave();
+  });
+  $('back').addEventListener('click', closeSignin);
+  addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('signing') && list.hidden) closeSignin(); else if (e.key === 'Escape') { list.hidden = true; nameIn.setAttribute('aria-expanded', 'false'); } });
+  acceptAs.addEventListener('click', () => {
+    if (!picked) { nameIn.focus(); return; }
+    if (busy) return;
+    const email = emailIn.value.trim().toLowerCase();
+    if (!email) { say('Enter your work email to continue'); emailIn.focus(); return; }
+    busy = true; asLabel.textContent = 'CHECKING…'; acceptAs.setAttribute('aria-disabled', 'true');
+    rpc('sign_in', { p_id: picked.id, p_email: email }).then(rows => {
+      const p = Array.isArray(rows) && rows[0];
+      if (!p) { say("That email doesn't match this name"); emailIn.focus(); emailIn.select(); return; }
+      try { sessionStorage.setItem('braga7.profile', JSON.stringify({ ...p, email })); } catch (e) {}
+      leave();
+    }).catch(() => say("Couldn't reach the sign-in server, please try again"))
+      .finally(() => { busy = false; if (!leaving) setPicked(picked); });
   });
   // coming back with the browser's Back button restores the page as it was left
   addEventListener('pageshow', e => { if (!e.persisted) return; leaving = false; document.body.classList.remove('leaving'); setGain(BGM_LOW, 0.8); });
