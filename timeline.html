@@ -107,12 +107,41 @@
   [data-msgblock][data-sent="done"] textarea::placeholder { color: rgba(255,255,255,0.56); }
   @keyframes msgThanks { from { opacity: 0; } }
   [data-msgblock][data-sent="done"] .msg-help { opacity: 0; visibility: hidden; }
-  @media (prefers-reduced-motion: reduce) { [data-msgblock][data-sent="done"] [data-msg-send] { animation: none; } }
+  /* Stellar classification: its own layer at the left edge of Day 0 → 2019, at 117% of its old size (zoom .8775);
+     revealed the first time the camera stops on that section, one piece after another */
+  [data-stellar] .st-g { position: absolute; inset: 0; }
+  [data-stellar] [data-st] { opacity: 0; transform: translateY(10px); }
+  [data-stellar].on [data-st] { opacity: 1; transform: none; transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1); }
+  [data-stellar].on [data-st="1"] { transition-delay: .45s; }
+  [data-stellar].on [data-st="2"] { transition-delay: .9s; }
+  [data-stellar].on [data-st="3"] { transition-delay: 1.35s; }
+  [data-stellar].on [data-st="4"] { transition-delay: 1.8s; }
+  [data-stellar].instant [data-st] { transition: none; }
+  /* "Hover star to interact" + arrow, pointing at the 2019 star */
+  /* anchored by its right edge (the arrow tip) to a point beside the star, so it needs no measuring */
+  [data-star-hint] .hint-in { position: absolute; right: 0; top: 0; display: flex; align-items: center; gap: 10px; opacity: 0; transform: translate(-10px, -50%); transition: opacity .4s ease, transform .4s ease; }
+  [data-star-hint][data-on="1"] .hint-in { opacity: 1; transform: translate(0, -50%); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1); }
+  [data-star-hint] p { margin: 0; font: 500 14px/1.12 'Barlow Condensed', sans-serif; letter-spacing: 0.28px; text-transform: uppercase; white-space: nowrap; color: #fff; opacity: 0.8; }
+  /* the arrow at half length (the shaft is cut from the tail, so the head keeps its shape), nudging like the navigation chip */
+  [data-star-hint] .hint-arrow { position: relative; display: block; flex-shrink: 0; width: 23.06px; height: 12.39px; overflow: hidden; animation: msgNudge 1.2s infinite; }
+  [data-star-hint] img { position: absolute; right: 0; top: 0; display: block; width: 46.11px; height: 12.39px; filter: brightness(0) invert(1); }
+  @media (prefers-reduced-motion: reduce) { [data-stellar] [data-st] { transform: none !important; } [data-star-hint] .hint-in { transform: translate(0, -50%) !important; } [data-star-hint] .hint-arrow { animation: none; } }
+  /* star-type legend above the timeline bar, at the bar's text size (11px at the 0.85 UI scale, stars as tall as the text);
+     flies up in from '19–20 through the message section, and back down out elsewhere */
+  [data-legend] { position: absolute; left: 50%; bottom: 72px; transform: translate(-50%, 24px); opacity: 0; pointer-events: none; transition: opacity .4s ease, transform .5s cubic-bezier(.5,0,.75,0); }
+  [data-legend][data-on="1"] { transform: translateX(-50%); opacity: 1; transition: opacity .6s ease, transform .8s cubic-bezier(.2,.8,.2,1); }
+  [data-legend] .lg-in { zoom: 0.85; display: flex; align-items: center; gap: 16px; font: 400 11px/1 Archivo, sans-serif; letter-spacing: 0.04em; color: #fff; white-space: nowrap; }
+  [data-legend] .lg-item { display: flex; align-items: center; gap: 6px; }
+  [data-legend] svg { display: block; flex-shrink: 0; }
+  @media (prefers-reduced-motion: reduce) { [data-legend], [data-legend][data-on="1"] { transform: translateX(-50%); } }
+  /* Starting Point's navigation pill + arrow nudges the same way as "Invitation unlocked" */
+  [data-nav-nudge] { animation: msgNudge 1.2s infinite; }
+  @media (prefers-reduced-motion: reduce) { [data-msgblock][data-sent="done"] [data-msg-send], [data-nav-nudge] { animation: none; } }
   [data-mini], [data-hint] { position: absolute; left: 20px; bottom: 20px; width: 120px; height: 127.5px; pointer-events: none; opacity: 0; visibility: hidden; transform-origin: 50% 100%;
     transform: translateY(160px) perspective(900px) rotateX(var(--rx, 8deg)) rotateY(var(--ry, -12deg)) rotateZ(var(--rz, 3deg)) scale(.86);
     transition: transform .95s cubic-bezier(.5,0,.85,.6), opacity .45s ease-in .5s, visibility 0s linear .95s; }
   /* scroll hint, bottom-right: Figma 176 × 71, scaled to the 41px timeline bar */
-  [data-hint] { left: auto; right: 20px; width: 101.63px; height: 41px; }
+  [data-hint] { left: auto; right: 20px; width: 101.63px; height: auto; } /* width kept; height follows the text */
   [data-mini][data-on="1"], [data-hint][data-on="1"] { opacity: 1; visibility: visible;
     transform: translateY(0) perspective(900px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
     transition: transform 1s cubic-bezier(.2,1.12,.35,1), opacity .5s ease, visibility 0s; }
@@ -207,26 +236,37 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
       </div>
       <div data-enter="text" style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
         <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;width:100%">NAVIGATION</p>
-        <div style="position:relative;flex-shrink:0;width:100px;height:32px"><img src="uploads/starting/nav-pill-arrow.svg" alt="" draggable="false" style="position:absolute;display:block;left:-1.050px;top:-1.050px"></div>
+        <div data-nav-nudge="1" style="position:relative;flex-shrink:0;width:100px;height:32px"><img src="uploads/starting/nav-pill-arrow.svg" alt="" draggable="false" style="position:absolute;display:block;left:-1.050px;top:-1.050px"></div>
         <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px;opacity:0.8"><span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Hold</span> &amp; <span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Drag</span> the space. LET’s TRAVERSE THROUGH THE MEMORY LANE.</p>
       </div>
-      <div data-enter="text" style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
-        <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;width:100%">STELLAR-CLASSIFICATION</p>
+      </div>
+    </div>
+    <div ref="{{ stellarRef }}" style="position:absolute;left:0;top:0;pointer-events:none;visibility:hidden;opacity:{{ stellarOp }};transition:opacity .5s ease;will-change:transform">
+      <div data-stellar="1" style="zoom:0.8775;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
+        <p data-st="0" style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;width:100%">STELLAR-CLASSIFICATION</p>
         <div style="position:relative;flex-shrink:0;width:242px;height:92px">
-          <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:0;top:79px">MEMORIES</p>
-          <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:76px;top:0">PICTURES</p>
-          <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:208px;top:79px">STORIES</p>
-          <div style="position:absolute;box-sizing:border-box;width:28px;height:28px;border-radius:20px;top:31px;left:28px;border:2px solid #d9d9d9"></div>
-          <img src="uploads/starting/leader-memories.svg" alt="" draggable="false" style="position:absolute;display:block;left:22.573px;top:56.740px">
-          <img src="uploads/starting/leader-pictures.svg" alt="" draggable="false" style="position:absolute;display:block;left:96.092px;top:15.711px">
-          <img src="uploads/starting/leader-stories.svg" alt="" draggable="false" style="position:absolute;display:block;left:198.546px;top:57.789px">
-          <div style="position:absolute;box-sizing:border-box;width:28px;height:28px;border-radius:20px;top:31px;left:104px;background:#d9d9d9"></div>
-          <div style="position:absolute;box-sizing:border-box;width:28px;height:28px;border-radius:20px;top:31px;left:180px;border:2px solid #d9d9d9"></div>
-          <div style="position:absolute;left:164.5px;top:15px;width:59px;height:59px"><img src="uploads/starting/star-rays.svg" alt="" draggable="false" style="position:absolute;display:block;left:0;top:0"></div>
+          <div data-st="1" class="st-g">
+            <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:0;top:79px">MEMORIES</p>
+            <div style="position:absolute;box-sizing:border-box;width:28px;height:28px;border-radius:20px;top:31px;left:28px;border:2px solid #d9d9d9"></div>
+            <img src="uploads/starting/leader-memories.svg" alt="" draggable="false" style="position:absolute;display:block;left:22.573px;top:56.740px">
+          </div>
+          <div data-st="2" class="st-g">
+            <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:76px;top:0">PICTURES</p>
+            <img src="uploads/starting/leader-pictures.svg" alt="" draggable="false" style="position:absolute;display:block;left:96.092px;top:15.711px">
+            <div style="position:absolute;box-sizing:border-box;width:28px;height:28px;border-radius:20px;top:31px;left:104px;background:#d9d9d9"></div>
+          </div>
+          <div data-st="3" class="st-g">
+            <p style="position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;white-space:nowrap;left:208px;top:79px">STORIES</p>
+            <img src="uploads/starting/leader-stories.svg" alt="" draggable="false" style="position:absolute;display:block;left:198.546px;top:57.789px">
+            <div style="position:absolute;box-sizing:border-box;width:28px;height:28px;border-radius:20px;top:31px;left:180px;border:2px solid #d9d9d9"></div>
+            <div style="position:absolute;left:164.5px;top:15px;width:59px;height:59px"><img src="uploads/starting/star-rays.svg" alt="" draggable="false" style="position:absolute;display:block;left:0;top:0"></div>
+          </div>
         </div>
-        <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px;opacity:0.8"><span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">HOVER</span> AROUND! EACH STAR REPRESENT A CORE MOMENT, BUT SOME HAVE MORE TO OFFER.</p>
+        <p data-st="4" style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:rgba(255,255,255,0.8);text-decoration-color:rgba(255,255,255,0.8);margin:0;width:185px"><span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">HOVER</span> AROUND! EACH STAR REPRESENT A CORE MOMENT, BUT SOME HAVE MORE TO OFFER.</p>
       </div>
-      </div>
+    </div>
+    <div ref="{{ starHintRef }}" data-star-hint="1" aria-hidden="true" style="position:absolute;left:0;top:0;pointer-events:none;visibility:hidden;will-change:transform">
+      <div class="hint-in"><p>Hover Star to Interact</p><span class="hint-arrow"><img src="uploads/message/arrow-unlock.svg" alt="" draggable="false"></span></div>
     </div>
     <div ref="{{ finalRef }}" style="position:absolute;left:0;top:0;pointer-events:none;visibility:hidden;will-change:transform">
       <div data-final="1" style="zoom:0.6;width:588px;height:493.19px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:64px">
@@ -264,9 +304,9 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
     </div>
     <div ref="{{ miniRef }}" data-mini="1" aria-hidden="true"></div>
     <div ref="{{ hintCardRef }}" data-hint="1">
-      <div style="zoom:0.57746;box-sizing:border-box;width:176px;height:71px;padding:15px;display:flex;align-items:flex-start;gap:8px;border:1px solid rgba(255,255,255,0.32);border-radius:8.974px">
+      <div style="zoom:0.57746;box-sizing:border-box;width:176px;padding:15px;display:flex;align-items:flex-start;gap:8px;border:1px solid rgba(255,255,255,0.32);border-radius:8.974px">
         <img src="uploads/hint/arrow-up-to-arc.svg" alt="" draggable="false" style="display:block;flex-shrink:0;width:20px;height:20px;transform:rotate(90deg)">
-        <p style="flex:1 0 0;min-width:1px;margin:0;font-family:'Barlow Condensed',sans-serif;font-weight:400;font-size:12px;line-height:1.12;letter-spacing:0.12px;text-transform:uppercase;white-space:nowrap;color:#fff">Scroll to the end of the<br>timeline to collect your<br>invitation.</p>
+        <p style="flex:1 0 0;min-width:1px;margin:0;zoom:1.47197;font-family:Archivo,sans-serif;font-weight:400;font-size:11px;line-height:1.3;letter-spacing:0.04em;color:#fff">Scroll to the end of the timeline to collect your invitation.</p>
       </div>
     </div>
     <div data-enter="nav-top" style="position:absolute;top:20px;left:20px;right:20px;pointer-events:none">
@@ -292,6 +332,13 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
         <div ref="{{ waveRef }}" aria-hidden="true" style="position:relative;flex-shrink:0;width:135.35px;height:21.409px;opacity:var(--nav-op,0.5);transition:opacity .2s"></div>
       </div>
     </div>
+    </div>
+    <div data-legend="1" data-on="{{ legendOn }}" aria-label="Star types: Memories, Pictures and Videos, Stories" role="img">
+      <div class="lg-in">
+        <span class="lg-item"><svg viewBox="0 0 22 22" width="11" height="11" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="#fff" stroke-width="2.4"/></svg>Memories</span>
+        <span class="lg-item"><svg viewBox="0 0 22 22" width="11" height="11" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="#fff"/></svg>Pictures and Videos</span>
+        <span class="lg-item"><svg viewBox="0 0 22 22" width="11" height="11" aria-hidden="true"><circle cx="11" cy="11" r="4.6" fill="none" stroke="#fff" stroke-width="2"/><g stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M11 1.2v2.6M11 18.2v2.6M1.2 11h2.6M18.2 11h2.6M4.07 4.07l1.84 1.84M16.09 16.09l1.84 1.84M4.07 17.93l1.84-1.84M16.09 5.91l1.84-1.84"/></g></svg>Stories</span>
+      </div>
     </div>
     <div data-enter="nav-bottom" style="position:absolute;left:50%;bottom:20px;width:331px;transform:translateX(-50%);box-sizing:border-box;padding:0 11px;border:1px solid rgba(255,255,255,0.32);border-radius:8px;overflow:hidden;pointer-events:none">
       <div style="width:100%;height:39px;pointer-events:auto">
@@ -319,12 +366,14 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
 class Component extends DCLogic {
   state = { soundMode: 'low', finalUnlocked: false, data: null, vw: 1200, vh: 800, hoverSec: -1, centerSec: 0, hoverKey: null };
   gridRef = React.createRef();
-  skyRef = React.createRef(); dustRef = React.createRef(); linesRef = React.createRef(); tipRef = React.createRef(); cardsRef = React.createRef(); ringRef = React.createRef(); zoomRef = React.createRef(); hintRef = React.createRef(); waveRef = React.createRef(); navRef = React.createRef(); auroraRef = React.createRef(); startRef = React.createRef(); finalRef = React.createRef(); msgRef = React.createRef(); miniRef = React.createRef(); hintCardRef = React.createRef(); lastAct = performance.now(); cards = []; imgDims = {};
+  skyRef = React.createRef(); dustRef = React.createRef(); linesRef = React.createRef(); tipRef = React.createRef(); cardsRef = React.createRef(); ringRef = React.createRef(); zoomRef = React.createRef(); hintRef = React.createRef(); waveRef = React.createRef(); navRef = React.createRef(); auroraRef = React.createRef(); startRef = React.createRef(); finalRef = React.createRef(); msgRef = React.createRef(); miniRef = React.createRef(); stellarRef = React.createRef(); starHintRef = React.createRef(); hintCardRef = React.createRef(); lastAct = performance.now(); cards = []; imgDims = {};
   layerEls = []; layerRefFns = [];
   camW = null; targetW = 0; mx = null; tipSec = -1; snapped = true; wheelT = 0; boxes = [];
   W = 13996.6; H = 1080;
   // Starting Point: START wide for its content, plus an empty spacer before Day 0, so focus doesn't switch straight away
   START = 1440; SPACER = 400; LEAD = this.START + this.SPACER;
+  // how far into Day 0 → 2019 (world units) the stellar classification's left edge sits
+  STELLAR_INSET = 0;
   // F: empty closing section after 2027
   TAIL = 1440;
   // M: the leave-a-message section, between 2026 → 2027 and F
@@ -483,7 +532,7 @@ class Component extends DCLogic {
     window.addEventListener('pointercancel', this.onDragEnd);
     this.initAurora();
     setTimeout(() => this.revealWhenReady(), 8000);
-    const tick = () => { this.tick(); this.tickStart(); this.tickFinal(); this.tickMessage(); this.tickCardTilt(); this.tickMiniCard(); this.tickWave(); this.tickAurora(); this.raf = requestAnimationFrame(tick); };
+    const tick = () => { this.tick(); this.tickStart(); this.tickStellar(); this.tickFinal(); this.tickMessage(); this.tickCardTilt(); this.tickMiniCard(); this.tickWave(); this.tickAurora(); this.raf = requestAnimationFrame(tick); };
     this.raf = requestAnimationFrame(tick);
   }
   componentWillUnmount() {
@@ -493,7 +542,7 @@ class Component extends DCLogic {
     window.removeEventListener('wheel', this.onWheel);
     window.removeEventListener('keydown', this.onKey);
     document.removeEventListener('mouseover', this.onUiOver);
-    document.removeEventListener('click', this.onMsgClick); clearTimeout(this.msgTimer);
+    document.removeEventListener('click', this.onMsgClick); clearTimeout(this.msgTimer); clearTimeout(this.stT1);
     document.removeEventListener('input', this.onMsgInput);
     window.removeEventListener('pointerdown', this.onGesture);
     window.removeEventListener('keydown', this.onGesture);
@@ -512,6 +561,39 @@ class Component extends DCLogic {
     if (on !== this.navHover) { this.navHover = on; el.style.setProperty('--nav-op', on ? '0.8' : '0.5'); }
   }
   // Starting Point set: crisp screen-space layer that travels with the camera, crew card centred on the page at rest
+  // stellar classification at the left edge of Day 0 → 2019: a short tutorial. The first time the camera comes to rest
+  // there, the pieces fade in one by one, then the "Hover star to interact" arrow points at the 2019 star. The camera is
+  // held on that section (no going further forward) until that star is hovered; then the arrow goes, the classification
+  // stays, and the timeline opens up. Done once (guests: every visit is the first).
+  tickStellar() {
+    const el = this.stellarRef.current, hint = this.starHintRef.current, b = this.boxes, d = this.state.data;
+    if (!el || !hint || b.length < 3 || this.camW == null || !d) return;
+    const blk = el.firstElementChild;
+    if (this.stState == null) { this.stState = this.recall('stellar') ? 'done' : 'idle'; if (this.stState === 'done') blk.classList.add('on', 'instant'); }
+    const vw = this.state.vw, vh = this.state.vh, k = this.scale() * (this.fitC || 1), half = v => Math.round(v * 2) / 2;
+    const W = 242 * 0.8775, H = this.stH || (this.stH = blk.getBoundingClientRect().height || 250);
+    const x = half(vw / 2 + (this.LEAD + this.STELLAR_INSET - this.camW) * k), y = half(vh / 2 - H / 2);
+    // starts the moment Day 0 → 2019's content (the classification, at its left edge) comes on screen, however fast the camera moves
+    if (this.stState === 'idle' && x < vw && x + W > 0) {
+      this.stState = 'playing'; this.stellarHold = true; blk.classList.add('on');
+      this.stT1 = setTimeout(() => { this.stHint = true; }, 2600);
+      // already heading further (a timeline-bar jump, momentum): let it run on to the halfway limit, then spring back
+      if (this.targetW > b[1].cx) { this.snapped = false; this.wheelT = performance.now() + 300; }
+    }
+    // tutorial complete: the 2019 star has been hovered
+    if (this.stState === 'playing' && this.state.hoverKey === 'y' + d.years[0].year) {
+      this.stState = 'done'; this.stellarHold = false; this.stHint = false; clearTimeout(this.stT1); this.remember('stellar', '1');
+    }
+    const show = this.stState !== 'idle' && x < vw && x + W > 0;
+    el.style.visibility = show ? 'visible' : 'hidden';
+    if (show) el.style.transform = `translate3d(${x}px,${y}px,0)`;
+    // the hint: on Day 0 → 2019, from the end of the reveal until the 2019 star is hovered
+    const p = this.fyPt, on = !!(this.stHint && this.stState === 'playing' && p && this.state.centerSec === 1);
+    // the arrow tip sits 24px clear of the star (of its sun rays' tips, when it has them)
+    if (p) hint.style.transform = `translate3d(${half(p.x - p.r - 24)}px,${half(p.y)}px,0)`;
+    hint.style.visibility = p ? 'visible' : 'hidden';
+    if (hint.dataset.on !== (on ? '1' : '0')) hint.dataset.on = on ? '1' : '0';
+  }
   tickStart() {
     const el = this.startRef.current; if (!el || !this.boxes.length || this.camW == null) return;
     const vw = this.state.vw, Z = 0.75, CARD_X = 482 * Z, CARD_Y = 170 * Z, half = v => Math.round(v * 2) / 2;
@@ -974,7 +1056,7 @@ class Component extends DCLogic {
   fitS(k) { return this.skyH() * 0.94 / (this.H * k); }
   scale() { return this.fitS(1); }
   // the camera stops at the message section until a message has been sent; then F opens
-  clamp(v) { const b = this.boxes; if (!b.length) return v; const end = this.state.finalUnlocked || b.length < 2 ? b[b.length - 1].cx : b[b.length - 2].cx; return Math.max(b[0].cx, Math.min(end, v)); }
+  clamp(v) { const b = this.boxes; if (!b.length) return v; let end = this.state.finalUnlocked || b.length < 2 ? b[b.length - 1].cx : b[b.length - 2].cx; if (this.stellarHold && b[2]) end = Math.min(end, b[1].cx + (b[2].cx - b[1].cx) * 0.5); return Math.max(b[0].cx, Math.min(end, v)); }
   // Starting Point keeps focus until the camera is 80% of the way to section 01; elsewhere the nearest section is focused
   focusSec(x) { const b = this.boxes; if (b.length > 1 && x >= b[0].cx && x < b[1].cx) return x < b[0].cx + (b[1].cx - b[0].cx) * 0.8 ? 0 : 1; return this.nearestSec(x); }
   nearestSec(x) { let bi = 0, bd = Infinity; this.boxes.forEach((b, i) => { const dd = Math.abs(b.cx - x); if (dd < bd) { bd = dd; bi = i; } }); return bi; }
@@ -993,6 +1075,7 @@ class Component extends DCLogic {
 
   goSection(i) {
     const n = this.sections().length; if (i === n - 1 && !this.state.finalUnlocked) i = n - 2;
+    if (this.stellarHold && i > 1) i = 1; // the stellar tutorial holds the camera on Day 0 → 2019
     const sec = this.sections()[i]; if (!sec) return;
     this.targetW = this.clamp(this.boxes[i] ? this.boxes[i].cx : (sec.x0 + sec.x1) / 2); this.snapped = true;
   }
@@ -1021,7 +1104,9 @@ class Component extends DCLogic {
     if (!this.snapped && nowS - this.wheelT > 160) {
       this.snapped = true;
       const y26 = this.state.data ? this.state.data.years.findIndex(y => y.year === 2026) : -1, freeFrom = y26 >= 0 && this.boxes[y26 + 1] ? this.boxes[y26 + 1].cx : Infinity;
-      if (this.targetW >= this.boxes[1].cx && this.targetW < freeFrom) this.targetW = this.boxes[this.nearestSec(this.targetW)].cx;
+      // during the stellar tutorial, any push forward springs back to Day 0 → 2019
+      if (this.stellarHold && this.targetW > this.boxes[1].cx) this.targetW = this.boxes[1].cx;
+      else if (this.targetW >= this.boxes[1].cx && this.targetW < freeFrom) this.targetW = this.boxes[this.nearestSec(this.targetW)].cx;
     }
     this.targetW = this.clamp(this.targetW);
     this.camW += (this.targetW - this.camW) * 0.085;
@@ -1035,7 +1120,8 @@ class Component extends DCLogic {
 
     const camC = this.camW, cx = vw / 2, cy = skyH / 2, D = 3 * Math.max(vw, skyH);
     const zOf = k => D * (1 - 1 / k);
-    const cs = this.focusSec(camC);
+    let cs = this.focusSec(camC);
+    if (this.stellarHold && cs > 1) cs = 1; // '19–20 stays unfocused while the tutorial holds the camera
     const zpT = zOf(this.kOf(this.Z[cs]));
     if (this.zp == null) this.zp = zpT;
     [this.zp, this.zpV] = spring(this.zp, this.zpV || 0, zpT);
@@ -1107,6 +1193,9 @@ class Component extends DCLogic {
         });
       }
     }
+    // the first year's star (2019) on screen, for the "Hover star to interact" arrow
+    const fy = this.state.data && this.state.data.years[0];
+    if (fy) { if (this.fySec == null) this.fySec = this.secAt(fy.x); const m = mats[this.fySec]; if (m) { const p = this.pt(m, fy.x, fy.y), q = this.pt(m, fy.x + (fy.info ? 23 : 13), fy.y); this.fyPt = { x: p[0], y: p[1], r: Math.hypot(q[0] - p[0], q[1] - p[1]) }; } }
     this.tickMStarHover();
     const A = this.tipAnchor, B = A || this.cardAnchor;
     let P = null, rs = 0;
@@ -1321,7 +1410,10 @@ class Component extends DCLogic {
       // the icon has both arcs: low clips the outer one, off clips both
       volClip: { full: 'none', low: 'polygon(0 0,9.5px 0,9.5px 4.7px,15.2px 4.7px,15.2px 13.3px,9.5px 13.3px,9.5px 18px,0 18px)', off: 'inset(0 8.5px 0 0)' }[this.state.soundMode],
       toggleSound: () => this.setState(s => ({ soundMode: this.SOUND_NEXT[s.soundMode] }), () => { this.initAudio(); this.applySound(); }),
-      miniRef: this.miniRef, hintCardRef: this.hintCardRef, crew: this.profile(), msgRef: this.msgRef, finalRef: this.finalRef, gridRef: this.gridRef, navLogoOp: this.onFinal() ? 0 : 1, startRef: this.startRef, startOp: this.state.centerSec === 0 ? 1 : 0.1, auroraRef: this.auroraRef, navRef: this.navRef, skyRef: this.skyRef, zoomRef: this.zoomRef, ringRef: this.ringRef, hintRef: this.hintRef, cardsRef: this.cardsRef, dustRef: this.dustRef, linesRef: this.linesRef, tipRef: this.tipRef,
+      // the legend shows from '19–20 to the message section; the classification dims with Day 0 → 2019's stars (22%) when that section isn't focused
+      legendOn: this.state.data && this.state.centerSec >= 2 && this.state.centerSec <= this.state.data.years.length + 1 ? '1' : '0',
+      stellarOp: (this.props.focusSection ?? true) && this.state.centerSec !== 1 ? 0.22 : 1,
+      miniRef: this.miniRef, stellarRef: this.stellarRef, starHintRef: this.starHintRef, hintCardRef: this.hintCardRef, crew: this.profile(), msgRef: this.msgRef, finalRef: this.finalRef, gridRef: this.gridRef, navLogoOp: this.onFinal() ? 0 : 1, startRef: this.startRef, startOp: this.state.centerSec === 0 ? 1 : 0.1, auroraRef: this.auroraRef, navRef: this.navRef, skyRef: this.skyRef, zoomRef: this.zoomRef, ringRef: this.ringRef, hintRef: this.hintRef, cardsRef: this.cardsRef, dustRef: this.dustRef, linesRef: this.linesRef, tipRef: this.tipRef,
       onSkyMove: e => { const r = this.skyRef.current.getBoundingClientRect(); this.mx = e.clientX - r.left; this.my = e.clientY - r.top; this.lastAct = performance.now(); this.setNavHover(e); },
       onDragStart: e => {
         this.lastAct = performance.now();

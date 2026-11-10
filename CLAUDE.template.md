@@ -29,7 +29,11 @@ Read `README.md` for the full spec. These rules are the user's established direc
 - Top nav, timeline card section cells and pop-up cards render at 0.85 (`UI` in `timeline.html`, `zoom:0.85` in the template). The nav keeps a 20px margin to the screen.
 
 ## Starting Point
-- The crew card stays at the exact page centre, horizontally and vertically, when the camera rests on section 00. The rest of the set is positioned relative to it. The set renders at 75% of design size, keeps full opacity until section 01 takes focus (80% of the way there), then fades to 10%.
+- The crew card stays at the exact page centre, horizontally and vertically, when the camera rests on section 00. The rest of the set is positioned relative to it. The set renders at 75% of design size, keeps full opacity until section 01 takes focus (80% of the way there), then fades to 10%. The navigation info's pill-and-arrow nudges 10px right on a loop, like "Invitation unlocked".
+
+## Stellar classification
+- Dims to 22% with Day 0 → 2019's stars whenever that section isn't focused.
+- A tutorial on Day 0 → 2019, its own layer at 117% of the old size (90% of the first move's 130%), at the section's left edge. The moment any of that section shows on screen, title, Memories, Pictures, Stories and the note fade in one by one (no delay); then "Hover star to interact" with a short (23px) arrow, nudging like the navigation chip, points at the 2019 star. The hint sits 24px clear of the star's rays. Until that star is hovered, the camera can only go halfway towards '19–20 (which stays unfocused) and springs back to Day 0 → 2019 when the scroll or drag stops; then the arrow goes, the classification stays, and the timeline opens up.
 
 ## Timeline entrance
 - Never white on load. Soft fade from a dark cover, with a loading ring only if loading is slow. Then in order: top nav and timeline card fly in and fade in, crew card pops in with a slight zoom from a random tilt to front-facing, then the invitation note and info blocks fade in.
@@ -42,11 +46,14 @@ Read `README.md` for the full spec. These rules are the user's established direc
 - Behind everything on F, a 16-column grid of pure white lines (lines hidden for now: opacity 0, was 8%): 20px from the screen sides, full screen height, fading out over 80px toward the top nav and the timeline card and hidden behind them. 21 rows deep with three empty spacer rows at the top and two at the bottom; 8 rows' worth visible between the navs. It pans with F and fades in when F takes focus. On F, vertical wheel, drag and Arrow Up/Down scroll the grid (the RSVP block stays put); scrolling up past its top goes back along the timeline.
 - 66 message stars, one per crew member (Figma 137:4531: photo tile + crew tag, placeholders for now) sit one per cell at 100%, 90% or 80% (random) of the cell width minus 8px padding each side, scattered organically. Stars unlock when that person has sent a message; # 001–004, # 012 and # 013 are also unlocked with placeholder text until they send their own (filled tile showing that crew member's photo, via Supabase `crew_profiles()`, or the git-ignored `assets/crew-local.json` locally); locked stars show an empty tile at 40% size and their number at 50%. Any grid cell that intersects the invitation's container (lockup + text + button, 353 × 296px on screen) stays empty: a star whose cell becomes blocked as the grid scrolls fades out, shrinks, and pops back in another random free cell. Hovering an unlocked star opens one text card, in the regular pop-up style and behaviour: the message in quotation marks, the person's name (0.08em tracking, first two names if too long) and their title under it at 80%, no headline or chip, half the regular star-to-card gap; the hovered star's photo tile glows and grows to 144% while hovered (real messages from Supabase, placeholder text in `MSTAR_SAMPLES` until then; your own sent message's star also gets 8 spinning sun rays around its photo tile).
 
+## Star legend
+- Above the timeline bar, at the bar's label size (11px × 0.85, stars as tall as the text): outline "Memories", filled "Pictures and Videos", rays "Stories". Flies in from '19–20 through the message section; flies out on S, Day 0 → 2019 and F.
+
 ## Small crew card
 - Past Starting Point, a 50% copy of the crew card sits 20px from the bottom-left corner, with the same hover tilt. It floats up with the entrance tilt and zoom, and reverses down on returning to Starting Point.
 
 ## Scroll hint card
-- Bottom-right, 20px from the edges, scaled to the timeline bar's 41px height. Enters and leaves with the small crew card, in the same way.
+- Bottom-right, 20px from the edges, 101.6px wide (its scale once matched the timeline bar's 41px height). Its text uses the timeline bar's label style (Archivo 400 11px × 0.85, normal case); the card's height follows the text. Enters and leaves with the small crew card, in the same way.
 
 ## Crew card hover
 - On both the main and small card: tilt of 12° at most per axis, starting within 30px of the card, building as the cursor nears, strongest touching its rim and sides.
