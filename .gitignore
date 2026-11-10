@@ -8,3 +8,6 @@ Thumbs.db
 
 # private staff data for Supabase
 supabase/*.private.sql
+
+# staff photos: uploaded to Supabase Storage, never committed
+assets/

@@ -52,3 +52,22 @@ revoke all on function public.crew_names() from public;
 revoke all on function public.sign_in(smallint, text) from public;
 grant execute on function public.crew_names() to anon, authenticated;
 grant execute on function public.sign_in(smallint, text) to anon, authenticated;
+
+-- Name, title and photo for every crew member, for the message stars. Same check as sign_in (the person's tag + work email), without recording a sign-in.
+drop function if exists public.crew_photos(text, text);
+create or replace function public.crew_profiles(p_tag text, p_email text)
+returns table (tag text, name text, title text, photo text)
+language plpgsql stable security definer set search_path = public
+as $$
+declare
+  v_email text := lower(btrim(coalesce(p_email, '')));
+begin
+  if v_email = '' or not exists (select 1 from public.crew c where c.tag = p_tag and v_email = any (c.emails)) then
+    return;
+  end if;
+  return query select c.tag, c.name, c.title, c.photo from public.crew c order by c.tag;
+end;
+$$;
+
+revoke all on function public.crew_profiles(text, text) from public;
+grant execute on function public.crew_profiles(text, text) to anon, authenticated;

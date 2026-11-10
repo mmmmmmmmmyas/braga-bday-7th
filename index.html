@@ -57,8 +57,8 @@
   #accept { flex-shrink: 0; box-sizing: border-box; width: 314px; display: flex; align-items: center; gap: 6.729px; padding: 10.951px 18.951px; border: 1.049px solid #fff; border-radius: 26.411px; background: #fff; cursor: pointer; font: 600 15.7px/normal 'Barlow Condensed', sans-serif; color: #070504; white-space: nowrap; transition: background .2s, border-color .2s; }
   #accept:hover { background: #9e9891; border-color: #9e9891; }
   /* Figma 100:2089: Back + Accept as, 314px together */
-  /* skip login: plain text button between Accept invitation and the volume note, only before the form opens */
-  /* only offered when running locally; hidden on the deployed site */
+  /* skip login: plain text button under the volume note, only before the form opens */
+  /* offered everywhere except the deployed site (see the vercel.app check in the script) */
   #skip { display: none; }
   body.local #skip { display: inline-block; }
   #skip { margin: 0; padding: 2px 4px; border: 0; background: none; color: #fff; font: 500 12px/1.12 'Barlow Condensed', sans-serif; text-transform: uppercase; text-decoration: underline; text-decoration-thickness: from-font; text-underline-position: from-font; cursor: pointer; opacity: .8; transition: color .2s, opacity .2s; }
@@ -123,15 +123,15 @@
         <button id="back" type="button">BACK</button>
         <button id="acceptAs" type="button" aria-disabled="true"><span id="asLabel">ACCEPT AS</span><span id="asArrow"><img src="uploads/intro/arrow-accept-as.svg" alt="" draggable="false"></span></button>
       </div>
-      <button id="skip" type="button">Skip login</button>
       <p id="volume">FOR BEST EXPERIENCE,  TURN VOLUME ON.</p>
+      <button id="skip" type="button">Skip login</button>
     </div>
   </div>
 </main>
 <script src="./sky.js"></script>
 <script>
 (function () {
-  const BGM_LOW = 0.12, W = 12556.6, H = 1080;
+  const BGM_LOW = 0.12, W = 13996.6, H = 1080;
   // Supabase: the publishable key is meant for browsers; the staff table itself is unreadable without the two functions below
   const SUPABASE_URL = 'https://ccdjweiqawhvammtajxu.supabase.co', SUPABASE_KEY = 'sb_publishable_aeeNe84Iyg9ZeEqXByzr1g_f3JfPT6m';
   const rpc = (fn, body) => fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
@@ -161,11 +161,17 @@
   // autoplay policy blocks that, the audio waits ready and starts on the first interaction it counts
   let au = null;
   const bgmP = fetch('uploads/space-music.mp3').then(r => r.arrayBuffer()).catch(() => null);
+  const sfxP = fetch('uploads/hover.mp3').then(r => r.arrayBuffer()).catch(() => null);
   function startAudio() {
     if (au) { au.ctx.resume(); return; }
     const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return;
     const ctx = new Ctx(), master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
-    au = { ctx, master };
+    // hover sound for buttons: same chain as the timeline (gain 0.6 → compressor), played at half the stars' level
+    const sfx = ctx.createGain(), comp = ctx.createDynamicsCompressor(); sfx.gain.value = 0.6;
+    comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.2;
+    sfx.connect(comp); comp.connect(ctx.destination);
+    au = { ctx, master, sfx };
+    sfxP.then(ab => ab && ctx.decodeAudioData(ab)).then(b => { if (b) au.hover = b; }).catch(() => {});
     ctx.resume();
     master.gain.linearRampToValueAtTime(BGM_LOW, ctx.currentTime + 1.2);
     bgmP.then(ab => ab && ctx.decodeAudioData(ab)).then(buf => {
@@ -188,6 +194,19 @@
     }).catch(() => {});
   }
   startAudio();
+  function playUi() {
+    if (!au || !au.hover || au.ctx.state !== 'running') return;
+    const t = au.ctx.currentTime, since = t - (au.lastHit || 0); if (since < 0.07) return; au.lastHit = t;
+    if (au.voice) { const g0 = au.voice.g.gain; g0.cancelScheduledValues(t); g0.setValueAtTime(g0.value, t); g0.linearRampToValueAtTime(0, t + 0.06); au.voice.s.stop(t + 0.08); }
+    const s = au.ctx.createBufferSource(), g = au.ctx.createGain(); s.buffer = au.hover; s.connect(g); g.connect(au.sfx);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime((since < 0.4 ? 0.55 : 1) * 0.48, t + 0.008); // half the stars' loudness at this SFX gain (0.6), see timeline.html
+    s.start(t); au.voice = { s, g }; s.onended = () => { if (au.voice && au.voice.s === s) au.voice = null; };
+  }
+  document.addEventListener('mouseover', e => {
+    const el = e.target && e.target.closest && e.target.closest('#accept, #skip, #back, #acceptAs, #names li[role="option"]');
+    if (!el || (e.relatedTarget && el.contains(e.relatedTarget)) || el.getAttribute('aria-disabled') === 'true') return;
+    playUi();
+  });
   ['pointerdown', 'pointerup', 'mousedown', 'touchend', 'click', 'keydown'].forEach(type => addEventListener(type, startAudio));
   document.addEventListener('visibilitychange', () => { if (au) document.hidden ? au.ctx.suspend() : au.ctx.resume(); });
 
@@ -264,10 +283,14 @@
   function openSignin() { document.body.classList.add('signing'); setTimeout(() => nameIn.focus(), 380); }
   function closeSignin() { document.body.classList.remove('signing'); list.hidden = true; $('accept').focus(); }
   $('accept').addEventListener('click', openSignin);
-  if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) document.body.classList.add('local');
-  // for now: straight to the timeline as a guest, with no sign-in
+  // Skip login shows everywhere except the deployed site (any *.vercel.app address); add a custom domain here if one is set up
+  if (!/\.vercel\.app$/i.test(location.hostname)) document.body.classList.add('local');
+  // local only: straight to the timeline as a guest who joined in 2020, starting every interaction fresh
   $('skip').addEventListener('click', () => {
-    try { sessionStorage.setItem('braga7.profile', JSON.stringify({ guest: true, name: 'Guest', tag: '—', year: '—', email: '', title: '' })); } catch (e) {}
+    try {
+      Object.keys(sessionStorage).filter(k => k.startsWith('braga7.') && k !== 'braga7.accepted').forEach(k => sessionStorage.removeItem(k));
+      sessionStorage.setItem('braga7.profile', JSON.stringify({ guest: true, name: 'Guest', tag: '—', year: 2020, email: '', title: '' }));
+    } catch (e) {}
     leave();
   });
   $('back').addEventListener('click', closeSignin);
