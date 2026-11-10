@@ -47,7 +47,16 @@
   /* hovered (or its card open): the photo tile glows and grows to 144% (120%, plus 20% more) */
   .mstar .photo { transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease; }
   .mstar.hover .photo { transform: scale(1.44); box-shadow: 0 0 16px 3px rgba(255,255,255,0.5); }
+  /* your own message's star: 8 sun rays (like an info star's, 2.67 x 6px) spin around the photo tile, paused while hovered;
+     they sit inside the tile so they grow with it */
+  .mstar .rays { display: none; position: absolute; left: 50%; top: 50%; width: 0; height: 0; animation: mstarRays 25.7s linear infinite; }
+  .mstar.mine .rays { display: block; }
+  .mstar.hover .rays { animation-play-state: paused; }
+  .mstar .rays i { position: absolute; left: -1.335px; top: -36px; width: 2.67px; height: 6px; border-radius: 1.5px; background: #f4f3ef; transform-origin: 1.335px 36px; }
+  @keyframes mstarRays { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .mstar .rays { animation: none; } }
   .mstar.locked .photo { width: 18.018px; height: 18.018px; margin-right: -7.722px; border-radius: 5.884px; background: none; }
+  .mstar.locked .tag { font-size: 9.193px; } /* empty stars: the number at 50% */
   .mstar .tag { position: relative; flex-shrink: 0; margin: 0; font: 500 18.386px/1.12 'Barlow Condensed', sans-serif; text-transform: uppercase; white-space: nowrap; color: #fff; opacity: 0.8; }
   /* "Open invitation": a soft white glow that breathes slowly (design px, shown at 60%) */
   [data-rsvp] { animation: rsvpGlow 3.6s ease-in-out infinite; }
@@ -323,7 +332,7 @@ class Component extends DCLogic {
   // the message has to be at least MSG_MIN characters (trimmed) before it unlocks F; the box stops at MSG_MAX (maxlength in the template)
   MSG_MIN = 80; MSG_MAX = 240;
   // final section grid: columns, rows on screen, rows in all (the rest scroll into view), and how many message stars it holds
-  // GRID_ROWS includes two empty spacer rows at the top and one at the bottom; cells keep the height of 1/GRID_VIS of the space between the navs
+  // GRID_ROWS includes three empty spacer rows at the top and two at the bottom; cells keep the height of 1/GRID_VIS of the space between the navs
   // Supabase (public publishable values, same as index.html): for crew_profiles(), which checks the signed-in person's email first, and the public crew_names()
   SUPABASE_URL = 'https://ccdjweiqawhvammtajxu.supabase.co'; SUPABASE_KEY = 'sb_publishable_aeeNe84Iyg9ZeEqXByzr1g_f3JfPT6m';
   // placeholder messages for the unlocked message stars, until real messages come from Supabase; your own star shows your own message
@@ -335,7 +344,7 @@ class Component extends DCLogic {
     '012': 'Every product we made began as a question someone in this team was brave enough to ask. Keep asking, keep listening, and keep making things people truly need.',
     '013': 'To everyone who sketched, argued, rebuilt and polished with me: thank you for caring about the details nobody asked for. Happy seventh, Braga, onwards and upwards.',
   };
-  GRID_COLS = 16; GRID_VIS = 8; GRID_ROWS = 19; GRID_TOP_SPACERS = 2; MSTARS = 66;
+  GRID_COLS = 16; GRID_VIS = 8; GRID_ROWS = 21; GRID_TOP_SPACERS = 3; GRID_BOTTOM_SPACERS = 2; MSTARS = 66;
   // message stars that are unlocked for now (by tag number); the rest show an empty, smaller photo tile
   MSTARS_UNLOCKED = [1, 2, 3, 4, 12, 13];
   // default size of the top nav, bottom rail and pop-up cards; template uses the same value as zoom:0.85
@@ -410,9 +419,23 @@ class Component extends DCLogic {
         send.classList.add('shake'); need.classList.add('show');
         ta && ta.focus({ preventScroll: true }); return;
       }
-      // a short 1s "sending" beat, then the invitation unlocks
+      // at least a 1s "sending" beat while the message is saved in Supabase (guests: kept in this tab only), then the invitation unlocks
       blk.dataset.sent = 'sending'; send.setAttribute('aria-busy', 'true'); if (ta) ta.readOnly = true;
-      this.msgTimer = setTimeout(() => { this.remember('message', text); this.setState({ finalUnlocked: true }); this.msgDone(blk); }, 1000);
+      const me = this.profile(), t0 = performance.now(), after = f => r => new Promise(res => { this.msgTimer = setTimeout(() => res(f(r)), Math.max(0, 1000 - (performance.now() - t0))); });
+      const save = me.guest ? Promise.resolve('local') : this.rpc('submit_message', { p_tag: me.tag, p_email: me.email, p_body: text });
+      save.then(r => r === 'saved' || r === 'already' || r === 'local' ? r : Promise.reject(new Error(r)))
+        .then(after(r => {
+          this.remember('message', text);
+          if (r === 'saved' && this.crew) this.crew[me.tag] = { ...(this.crew[me.tag] || {}), message: text };
+          if (r === 'already') this.loadCrew(); // sent before, from another tab or device: show the one that was saved
+          this.refreshStars(); this.setState({ finalUnlocked: true }); this.msgDone(blk);
+        }), after(() => {
+          // not saved: back to editing, with a note
+          delete blk.dataset.sent; send.removeAttribute('aria-busy'); if (ta) ta.readOnly = false;
+          const need = send.parentElement.querySelector('.msg-need');
+          need.innerHTML = "Couldn't Send Your Message<br>Please Try Again";
+          need.classList.remove('show'); void need.offsetWidth; need.classList.add('show');
+        }));
     };
     // live count under the box; the helper turns red after a short attempt and back once the minimum is met
     this.onMsgInput = e => {
@@ -594,7 +617,7 @@ class Component extends DCLogic {
     const lead = this.drag && this.drag.grid ? -(this.drag.vy || 0) * 300 : 0;
     const s0 = Math.min(this.gridS, this.gridT, this.gridS + lead), s1 = Math.max(this.gridS, this.gridT, this.gridS + lead);
     // the first and last rows are empty spacers
-    const blocked = (c, r) => r < this.GRID_TOP_SPACERS || r === RT - 1 || (c * cw < A.r && (c + 1) * cw > A.l && r * ch - s1 < A.b && (r + 1) * ch - s0 > A.t);
+    const blocked = (c, r) => r < this.GRID_TOP_SPACERS || r >= RT - this.GRID_BOTTOM_SPACERS || (c * cw < A.r && (c + 1) * cw > A.l && r * ch - s1 < A.b && (r + 1) * ch - s0 > A.t);
     if (!this.mstars) { if (on) this.placeStars(C, RT, blocked); else return; }
     // each star is 100%, 90% or 80% of the cell-wide size, centred in its cell
     const cellX = (c, k) => c * cw + CP + (cw - CP * 2) * (1 - k) / 2, cellY = (r, k) => r * ch + (ch - sh * k) / 2;
@@ -626,12 +649,12 @@ class Component extends DCLogic {
     for (let i = 0; i < this.MSTARS; i++) {
       const cell = this.pickCell(C, RT, ok, taken); if (!cell) break; taken.add(`${cell[0]},${cell[1]}`);
       const el = document.createElement('div'); el.className = 'mstar' + (this.MSTARS_UNLOCKED.includes(i + 1) ? '' : ' locked');
-      el.innerHTML = '<div class="photo"></div><p class="tag"></p>'; el.lastChild.textContent = '# ' + String(i + 1).padStart(3, '0');
+      el.innerHTML = '<div class="photo"><div class="rays">' + [0, 45, 90, 135, 180, 225, 270, 315].map(d => `<i style="transform:rotate(${d}deg)"></i>`).join('') + '</div></div><p class="tag"></p>'; el.lastChild.textContent = '# ' + String(i + 1).padStart(3, '0');
       this.gridIn.appendChild(el);
       // first visit: stars pop in one by one in random order over about a second; each gets one of three sizes
       stars.push({ el, tag: String(i + 1).padStart(3, '0'), c: cell[0], r: cell[1], k: [1, 0.9, 0.8][Math.floor(Math.random() * 3)], a: -Math.random() * 0.6 - 0.15, dir: 1, pk: null, vk: null });
     }
-    this.mstars = stars; this.paintStarPhotos();
+    this.mstars = stars; this.refreshStars();
   }
   // crew details by tag for the message stars (name, title, photo). From Supabase: crew_profiles() returns them only after
   // checking the signed-in person's email, like sign_in(). Off the deployed site (local preview, Skip login), or if that fails,
@@ -639,20 +662,25 @@ class Component extends DCLogic {
   // public crew_names().
   loadCrew() {
     let p = {}; try { p = JSON.parse(sessionStorage.getItem('braga7.profile') || '{}') || {}; } catch (e) {}
-    const call = (fn, body) => fetch(`${this.SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { apikey: this.SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      .then(r => r.ok ? r.json() : Promise.reject(new Error(r.status))).then(rows => { if (!Array.isArray(rows) || !rows.length) throw new Error('none'); return rows; });
+    const call = (fn, body) => this.rpc(fn, body).then(rows => { if (!Array.isArray(rows) || !rows.length) throw new Error('none'); return rows; });
     const remote = p.guest || !p.email || !p.tag ? Promise.reject(new Error('guest')) :
-      call('crew_profiles', { p_tag: p.tag, p_email: p.email }).then(rows => Object.fromEntries(rows.map(r => [r.tag, { name: r.name || '', title: r.title || '', photo: r.photo || '' }])));
+      call('crew_profiles', { p_tag: p.tag, p_email: p.email }).then(rows => Object.fromEntries(rows.map(r => [r.tag, { name: r.name || '', title: r.title || '', photo: r.photo || '', message: r.message || '' }])));
     const local = () => /\.vercel\.app$/i.test(location.hostname) ? Promise.reject(new Error('deployed')) : fetch(new URL('assets/crew-local.json', document.baseURI))
       .then(r => r.ok ? r.json() : Promise.reject(new Error(r.status)))
       .then(m => Object.fromEntries(Object.entries(m).map(([t, c]) => [t, { name: c.name || '', title: c.title || '', photo: c.photo ? new URL('assets/photos-supabase/' + c.photo, document.baseURI).href : '' }])));
     const names = () => call('crew_names', {}).then(rows => Object.fromEntries(rows.map(r => [String(r.id).padStart(3, '0'), { name: r.name || '', title: '', photo: '' }])));
-    remote.catch(local).catch(names).catch(() => ({})).then(m => { this.crew = m; this.paintStarPhotos(); });
+    remote.catch(local).catch(names).catch(() => ({})).then(m => { this.crew = m; this.refreshStars(); });
+  }
+  // calls a Supabase function with the public key; resolves with its JSON
+  rpc(fn, body) {
+    return fetch(`${this.SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { apikey: this.SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(r.status)));
   }
   // what a message star's card says: the message in quotation marks, the person's name and title
   mstarQuote(tag) {
     const me = this.profile(), own = !me.guest && me.tag === tag ? this.recall('message') : null, c = (this.crew && this.crew[tag]) || {};
-    return { text: own || this.MSTAR_SAMPLES[tag] || '', name: c.name || (own ? me.name : '') || 'Crew # ' + tag, title: c.title || (own ? me.title : '') };
+    // a real message replaces the placeholder as soon as that person has sent one
+    return { text: c.message || own || this.MSTAR_SAMPLES[tag] || '', name: c.name || (own ? me.name : '') || 'Crew # ' + tag, title: c.title || (own ? me.title : '') };
   }
   // a message star's centre (its photo tile) in sky coordinates, for anchoring its card
   mstarPoint(key) {
@@ -666,7 +694,7 @@ class Component extends DCLogic {
     let k = null;
     if (this.mstars && this.mx != null && !this.drag && !this.zoom && this.onFinal()) {
       const o = this.skyRef.current.getBoundingClientRect(), x = this.mx + o.left, y = this.my + o.top;
-      const s = this.mstars.find(q => !q.el.classList.contains('locked') && +q.el.style.opacity > 0.6 && this.MSTAR_SAMPLES[q.tag] !== undefined && (r => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom)(q.el.getBoundingClientRect()));
+      const s = this.mstars.find(q => !q.el.classList.contains('locked') && +q.el.style.opacity > 0.6 && (r => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom)(q.el.getBoundingClientRect()));
       if (s) k = 'm' + s.tag;
     }
     if (k !== this.mHoverKey) {
@@ -679,11 +707,16 @@ class Component extends DCLogic {
     const hk = this.state.hoverKey, g = k || (hk && hk[0] === 'm' ? hk : null);
     if (g !== this.mGlowKey) { this.mstars && this.mstars.forEach(q => q.el.classList.toggle('hover', 'm' + q.tag === g)); this.mGlowKey = g; }
   }
-  paintStarPhotos() {
-    const m = this.crew; if (!m || !this.mstars) return;
+  // which stars are unlocked and how they look: a star opens once that person has sent a message (or it is one of the
+  // placeholder stars, MSTARS_UNLOCKED, until then); open stars show the photo; your own sent message gets the rays
+  refreshStars() {
+    if (!this.mstars) return;
+    const me = this.profile(), m = this.crew || {}, mine = !me.guest && !!this.recall('message');
     this.mstars.forEach(s => {
-      const url = m[s.tag] && m[s.tag].photo; if (s.el.classList.contains('locked') || typeof url !== 'string' || !/^https?:\/\//.test(url)) return;
-      s.el.firstChild.style.background = `#d9d9d9 url("${encodeURI(url)}") center / cover no-repeat`;
+      const c = m[s.tag] || {}, own = mine && me.tag === s.tag, open = !!c.message || own || this.MSTARS_UNLOCKED.includes(+s.tag);
+      s.el.classList.toggle('locked', !open); s.el.classList.toggle('mine', own);
+      const url = c.photo, ok = open && typeof url === 'string' && /^https?:\/\//.test(url);
+      s.el.firstChild.style.background = ok ? `#d9d9d9 url("${encodeURI(url)}") center / cover no-repeat` : '';
     });
   }
   moveStar(s, C, RT, blocked) {

@@ -304,7 +304,12 @@
     rpc('sign_in', { p_id: picked.id, p_email: email }).then(rows => {
       const p = Array.isArray(rows) && rows[0];
       if (!p) { say("That email doesn't match this name"); emailIn.focus(); emailIn.select(); return; }
-      try { sessionStorage.setItem('braga7.profile', JSON.stringify({ ...p, email })); } catch (e) {}
+      // the server says whether this person already left a message (any device); that decides the message section's state
+      const { message, ...prof } = p;
+      try {
+        sessionStorage.setItem('braga7.profile', JSON.stringify({ ...prof, email }));
+        if (message) sessionStorage.setItem('braga7.message', message); else sessionStorage.removeItem('braga7.message');
+      } catch (e) {}
       leave();
     }).catch(() => say("Couldn't reach the sign-in server, please try again"))
       .finally(() => { busy = false; if (!leaving) setPicked(picked); });
