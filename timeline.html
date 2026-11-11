@@ -134,6 +134,25 @@
   [data-legend] .lg-item { display: flex; align-items: center; gap: 6px; }
   [data-legend] svg { display: block; flex-shrink: 0; }
   @media (prefers-reduced-motion: reduce) { [data-legend], [data-legend][data-on="1"] { transform: translateX(-50%); } }
+  /* invitation modal ("Open invitation" on F): the PDF's three pages, scrollable, over a soft blur; buttons 8px below the frame */
+  [data-inv] { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; visibility: hidden; pointer-events: none; transition: visibility 0s linear .4s; }
+  [data-inv][data-open="1"] { visibility: visible; pointer-events: auto; transition: visibility 0s; }
+  [data-inv] .inv-bd { position: absolute; inset: 0; background: rgba(8,5,4,0.55); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); opacity: 0; transition: opacity .35s ease; }
+  [data-inv][data-open="1"] .inv-bd { opacity: 1; }
+  [data-inv] .inv-box { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; opacity: 0; transform: translateY(16px) scale(.97); transition: opacity .3s ease, transform .35s ease; }
+  [data-inv][data-open="1"] .inv-box { opacity: 1; transform: none; transition: opacity .45s ease .05s, transform .55s cubic-bezier(.2,.8,.2,1) .05s; }
+  [data-inv] .inv-frame { box-sizing: border-box; width: min(960px, calc(100vw - 48px)); max-height: calc(100vh - 120px); overflow-y: auto; overscroll-behavior: contain; padding: 10px; display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(158,152,145,0.3); border-radius: 18px; background: #080504; box-shadow: 0 30px 80px rgba(0,0,0,.6); scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.25) transparent; outline: none; user-select: none; }
+  [data-inv] .inv-frame:focus-visible { border-color: rgba(255,255,255,0.6); }
+  /* the PDF's pages have rounded corners on white; this rounding hides the white */
+  [data-inv] .inv-frame img { display: block; flex-shrink: 0; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 1.2% / 2.1%; background: #111; }
+  [data-inv] .inv-actions { display: flex; gap: 8px; }
+  .inv-btn { box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 10.95px 18.95px; border: 1.05px solid #fff; border-radius: 26.4px; font: 600 15.7px/normal 'Barlow Condensed', sans-serif; text-transform: uppercase; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
+  .inv-dl { background: #fff; color: #070504; }
+  .inv-dl:hover { background: #9e9891; border-color: #9e9891; }
+  .inv-close { background: transparent; color: #fff; }
+  .inv-close:hover { color: #9e9891; border-color: #9e9891; }
+  .inv-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { [data-inv] .inv-box, [data-inv][data-open="1"] .inv-box { transform: none; } }
   /* Starting Point's navigation pill + arrow nudges the same way as "Invitation unlocked" */
   [data-nav-nudge] { animation: msgNudge 1.2s infinite; }
   @media (prefers-reduced-motion: reduce) { [data-msgblock][data-sent="done"] [data-msg-send], [data-nav-nudge] { animation: none; } }
@@ -360,13 +379,27 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
     </div>
   </div>
   <div ref="{{ zoomRef }}" style="position:fixed;inset:0;z-index:20;pointer-events:none"></div>
+  <div ref="{{ invRef }}" data-inv="1" data-open="0" role="dialog" aria-modal="true" aria-label="Braga Technologies 7th Anniversary invitation" aria-hidden="true">
+    <div class="inv-bd" data-inv-close="1"></div>
+    <div class="inv-box">
+      <div class="inv-frame" tabindex="0" aria-label="Invitation, 3 pages">
+        <img data-src="uploads/invitation/page-1.webp" width="2400" height="1350" alt="Page 1 of 3. Seven years in and the journey is still going. Braga Technologies cordially invites you to attend the commemoration of our 7th Anniversary Event. Ballroom Sindang Reret, Jl. Surapati No. 53. Friday, 4 December 2026, 16.00 WIB. Dress code is required. Invitation for one. Please read the invitation fully." draggable="false">
+        <img data-src="uploads/invitation/page-2.webp" width="2400" height="1350" alt="Page 2 of 3. The invitation note; attendance: please arrive on time during the open gate period at 15:30; and the rundown, from open gate and merch claim at 15:30, opening, CEO foreword, three games, group photo, dinner with the home band, the competition winner announcement, to karaoke from 19.00 to 20.00." draggable="false">
+        <img data-src="uploads/invitation/page-3.webp" width="2400" height="1350" alt="Page 3 of 3. Fun costume competition with the theme Salah Kostum: anything from a jersey to Spartan gear, nothing offensive, provocative or discriminatory, and not too revealing. This invitation is for one person; if that doesn't suit you, please consult PnC Ilam Hasan." draggable="false">
+      </div>
+      <div class="inv-actions">
+        <a class="inv-btn inv-dl" data-inv-btn="1" href="uploads/invitation/Braga-7th-Anniversary-Invitation.pdf" download="Braga-7th-Anniversary-Invitation.pdf"><span>Download invitation</span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5v8M3.5 6.2 7 9.7l3.5-3.5M2 12.5h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <button type="button" class="inv-btn inv-close" data-inv-btn="1" data-inv-close="1">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;depth&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;},&quot;orbitTilt&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:10,&quot;min&quot;:0,&quot;max&quot;:20,&quot;step&quot;:1,&quot;unit&quot;:&quot;°&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;focusSection&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showGuides&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
 class Component extends DCLogic {
   state = { soundMode: 'low', finalUnlocked: false, data: null, vw: 1200, vh: 800, hoverSec: -1, centerSec: 0, hoverKey: null };
   gridRef = React.createRef();
-  skyRef = React.createRef(); dustRef = React.createRef(); linesRef = React.createRef(); tipRef = React.createRef(); cardsRef = React.createRef(); ringRef = React.createRef(); zoomRef = React.createRef(); hintRef = React.createRef(); waveRef = React.createRef(); navRef = React.createRef(); auroraRef = React.createRef(); startRef = React.createRef(); finalRef = React.createRef(); msgRef = React.createRef(); miniRef = React.createRef(); stellarRef = React.createRef(); starHintRef = React.createRef(); hintCardRef = React.createRef(); lastAct = performance.now(); cards = []; imgDims = {};
+  skyRef = React.createRef(); dustRef = React.createRef(); linesRef = React.createRef(); tipRef = React.createRef(); cardsRef = React.createRef(); ringRef = React.createRef(); zoomRef = React.createRef(); hintRef = React.createRef(); waveRef = React.createRef(); navRef = React.createRef(); auroraRef = React.createRef(); startRef = React.createRef(); finalRef = React.createRef(); msgRef = React.createRef(); miniRef = React.createRef(); invRef = React.createRef(); stellarRef = React.createRef(); starHintRef = React.createRef(); hintCardRef = React.createRef(); lastAct = performance.now(); cards = []; imgDims = {};
   layerEls = []; layerRefFns = [];
   camW = null; targetW = 0; mx = null; tipSec = -1; snapped = true; wheelT = 0; boxes = [];
   W = 13996.6; H = 1080;
@@ -384,19 +417,20 @@ class Component extends DCLogic {
   // GRID_ROWS includes three empty spacer rows at the top and two at the bottom; cells keep the height of 1/GRID_VIS of the space between the navs
   // Supabase (public publishable values, same as index.html): for crew_profiles(), which checks the signed-in person's email first, and the public crew_names()
   SUPABASE_URL = 'https://ccdjweiqawhvammtajxu.supabase.co'; SUPABASE_KEY = 'sb_publishable_aeeNe84Iyg9ZeEqXByzr1g_f3JfPT6m';
-  // placeholder messages for the unlocked message stars, until real messages come from Supabase; your own star shows your own message
+  // placeholder messages for the default unlocked message stars (the chiefs, plus 008), until that person sends a real one; your own star shows your own message
   MSTAR_SAMPLES = {
     '001': 'Seven years ago this was an idea and a small room. Thank you to every one of you who turned it into a team I am proud to walk into every single day.',
     '002': 'Every partnership we built started with someone here keeping a promise. Here is to the next seven years of showing up for each other and for the people we serve.',
     '003': 'From late-night deploys to systems that now run without us watching, thank you for building things that last. I cannot wait to see what we ship next together.',
     '004': 'Doing things properly is not always the fast way, but you all chose it again and again. Thank you for the trust, the patience, and the care you put into everything.',
+    '008': 'Every pixel on our screens started as a line of code someone here believed in. Thank you for the reviews, the late fixes and the patience. Here is to many more launches we build together.',
     '012': 'Every product we made began as a question someone in this team was brave enough to ask. Keep asking, keep listening, and keep making things people truly need.',
     '013': 'To everyone who sketched, argued, rebuilt and polished with me: thank you for caring about the details nobody asked for. Happy seventh, Braga, onwards and upwards.',
     '020': 'We taught machines to read maps, and you taught me what a team can learn together. Thank you for every experiment, every model and every brave idea. Here is to smarter years ahead.',
   };
   GRID_COLS = 16; GRID_VIS = 8; GRID_ROWS = 21; GRID_TOP_SPACERS = 3; GRID_BOTTOM_SPACERS = 2; MSTARS = 72;
   // message stars that are unlocked for now (by tag number); the rest show an empty, smaller photo tile
-  MSTARS_UNLOCKED = [1, 2, 3, 4, 12, 13, 20];
+  MSTARS_UNLOCKED = [1, 2, 3, 4, 8, 12, 13, 20];
   // default size of the top nav, bottom rail and pop-up cards; template uses the same value as zoom:0.85
   UI = 0.85;
   // stars are framed above this strip, where the old bottom rail sat, so they stay clear of the timeline card
@@ -432,6 +466,7 @@ class Component extends DCLogic {
     window.addEventListener('wheel', this.onWheel, { passive: false });
     this.onKey = e => {
       this.lastAct = performance.now();
+      if (this.invOpen) { this.invKey(e); return; }
       // typing in a field never steers the timeline
       if (/^(INPUT|TEXTAREA)$/.test((e.target && e.target.tagName) || '')) return;
       if (e.key === 'Escape') this.closeZoom();
@@ -447,12 +482,19 @@ class Component extends DCLogic {
     // hover sound for the rest of the interactive UI, at half the stars' volume, once per entry into an element
     this.uiSeq = 0;
     this.onUiOver = e => {
-      const el = e.target && e.target.closest && e.target.closest('[data-rail],[data-nav-sound],[data-rsvp],[data-zoomable],[data-msg-send]');
+      const el = e.target && e.target.closest && e.target.closest('[data-rail],[data-nav-sound],[data-rsvp],[data-zoomable],[data-msg-send],[data-inv-btn]');
       if (!el || (e.relatedTarget && el.contains(e.relatedTarget)) || el.getAttribute('aria-disabled') === 'true') return;
       // half the stars' loudness, from an offline render of this exact chain: 0.5 at SFX gain 0.3 ('off'), 0.48 at 0.6 where the compressor just touches the star hover
       this.playHover('ui:' + (el.dataset.sfx || (el.dataset.sfx = ++this.uiSeq)), this.state.soundMode === 'off' ? 0.5 : 0.48);
     };
     document.addEventListener('mouseover', this.onUiOver);
+    // "Open invitation" opens the invitation modal; the backdrop and Close shut it
+    this.onInvClick = e => {
+      const t = e.target; if (!t || !t.closest) return;
+      if (t.closest('[data-rsvp]')) { this.openInv(); return; }
+      if (this.invOpen && t.closest('[data-inv-close]')) this.closeInv();
+    };
+    document.addEventListener('click', this.onInvClick);
     this.onMsgClick = e => {
       const send = e.target.closest && e.target.closest('[data-msg-send]'); if (!send) return;
       const blk = send.closest('[data-msgblock]');
@@ -543,7 +585,7 @@ class Component extends DCLogic {
     window.removeEventListener('wheel', this.onWheel);
     window.removeEventListener('keydown', this.onKey);
     document.removeEventListener('mouseover', this.onUiOver);
-    document.removeEventListener('click', this.onMsgClick); clearTimeout(this.msgTimer); clearTimeout(this.stT1);
+    document.removeEventListener('click', this.onMsgClick); document.removeEventListener('click', this.onInvClick); clearTimeout(this.msgTimer); clearTimeout(this.stT1);
     document.removeEventListener('input', this.onMsgInput);
     window.removeEventListener('pointerdown', this.onGesture);
     window.removeEventListener('keydown', this.onGesture);
@@ -646,6 +688,7 @@ class Component extends DCLogic {
     const vw = this.state.vw, W = 588 * 0.6, H = 493.19 * 0.6, half = v => Math.round(v * 2) / 2;
     const x = half(vw / 2 - W / 2 + (b[b.length - 1].cx - this.camW) * this.scale() * (this.fitC || 1)), y = half(this.state.vh / 2 - H / 2 - 20);
     const on = this.onFinal(), show = x < vw && x + W > 0, key = `${x}|${y}|${show}|${on}`;
+    if (on) this.loadInv(); // the invitation's pages load once F is reached, so the modal opens straight onto them
     // the grid scrolls and animates every frame, even while the block holds still
     this.tickGrid(x - (vw / 2 - W / 2), show, on, x, y);
     if (key === this.finalKey) return; this.finalKey = key;
@@ -830,6 +873,33 @@ class Component extends DCLogic {
     blk.dataset.sent = 'done';
     if (ta) { ta.value = ''; ta.readOnly = false; ta.disabled = true; ta.placeholder = 'We Appreciate Your Good Message'; ta.removeAttribute('aria-describedby'); }
     if (send) send.removeAttribute('aria-busy');
+  }
+  // invitation modal: the PDF's pages as images (loaded once F is reached), the PDF itself to download
+  loadInv() {
+    const el = this.invRef.current; if (this.invLoaded || !el) return; this.invLoaded = true;
+    el.querySelectorAll('img[data-src]').forEach(im => { im.src = im.dataset.src; });
+  }
+  openInv() {
+    const el = this.invRef.current; if (!el || this.invOpen) return;
+    this.loadInv(); this.invOpen = true; this.invPrev = document.activeElement;
+    if (this.state.hoverKey) this.setState({ hoverKey: null });
+    el.querySelector('.inv-frame').scrollTop = 0;
+    el.dataset.open = '1'; el.setAttribute('aria-hidden', 'false');
+    setTimeout(() => { if (this.invOpen) el.querySelector('.inv-dl').focus({ preventScroll: true }); }, 60);
+  }
+  closeInv() {
+    const el = this.invRef.current; if (!el || !this.invOpen) return;
+    this.invOpen = false; el.dataset.open = '0'; el.setAttribute('aria-hidden', 'true');
+    if (this.invPrev && this.invPrev.focus) this.invPrev.focus({ preventScroll: true });
+  }
+  // while the modal is open: Esc closes it, Tab stays inside it, and nothing else reaches the timeline
+  invKey(e) {
+    const el = this.invRef.current;
+    if (e.key === 'Escape') { e.preventDefault(); this.closeInv(); return; }
+    if (e.key === 'Tab' && el) {
+      const f = [el.querySelector('.inv-frame'), el.querySelector('.inv-dl'), el.querySelector('.inv-close')], i = f.indexOf(document.activeElement);
+      e.preventDefault(); f[(i < 0 ? 0 : i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus({ preventScroll: true });
+    }
   }
   onFinal() { return !!this.state.data && this.state.centerSec === this.state.data.years.length + 2; }
   onMessage() { return !!this.state.data && this.state.centerSec === this.state.data.years.length + 1; }
@@ -1437,7 +1507,7 @@ class Component extends DCLogic {
       // the legend shows from '19–20 to the message section; the classification dims with Day 0 → 2019's stars (22%) when that section isn't focused
       legendOn: this.state.data && this.state.centerSec >= 2 && this.state.centerSec <= this.state.data.years.length + 1 ? '1' : '0',
       stellarOp: (this.props.focusSection ?? true) && this.state.centerSec !== 1 ? 0.22 : 1,
-      miniRef: this.miniRef, stellarRef: this.stellarRef, starHintRef: this.starHintRef, hintCardRef: this.hintCardRef, crew: this.profile(), msgRef: this.msgRef, finalRef: this.finalRef, gridRef: this.gridRef, navLogoOp: this.onFinal() ? 0 : 1, startRef: this.startRef, startOp: this.state.centerSec === 0 ? 1 : 0.1, auroraRef: this.auroraRef, navRef: this.navRef, skyRef: this.skyRef, zoomRef: this.zoomRef, ringRef: this.ringRef, hintRef: this.hintRef, cardsRef: this.cardsRef, dustRef: this.dustRef, linesRef: this.linesRef, tipRef: this.tipRef,
+      miniRef: this.miniRef, invRef: this.invRef, stellarRef: this.stellarRef, starHintRef: this.starHintRef, hintCardRef: this.hintCardRef, crew: this.profile(), msgRef: this.msgRef, finalRef: this.finalRef, gridRef: this.gridRef, navLogoOp: this.onFinal() ? 0 : 1, startRef: this.startRef, startOp: this.state.centerSec === 0 ? 1 : 0.1, auroraRef: this.auroraRef, navRef: this.navRef, skyRef: this.skyRef, zoomRef: this.zoomRef, ringRef: this.ringRef, hintRef: this.hintRef, cardsRef: this.cardsRef, dustRef: this.dustRef, linesRef: this.linesRef, tipRef: this.tipRef,
       onSkyMove: e => { const r = this.skyRef.current.getBoundingClientRect(); this.mx = e.clientX - r.left; this.my = e.clientY - r.top; this.lastAct = performance.now(); this.setNavHover(e); },
       onDragStart: e => {
         this.lastAct = performance.now();
