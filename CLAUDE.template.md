@@ -5,6 +5,9 @@ Read `README.md` for the full spec. These rules are the user's established direc
 ## Pages
 - `index.html` is the intro and entry point. `timeline.html` is the constellation, reachable only after accepting the invitation. `sky.js` holds the shared stars and aurora.
 
+## Phones
+- No mobile version. On phones (touch screen, shorter side under 600px) the intro shows a white chip "Please visit on desktop or tablet for maximum experience" in place of "Accept invitation" (and no Skip login). Tablets and desktops are unaffected.
+
 ## Sign in
 - The intro's Accept invitation opens a Name + Work email form in place of the message, at its size. "Accept as" is inactive until a name is picked, then shows the first name; the work email is checked as a password by Supabase's `sign_in()`. Only names reach the browser. Staff data lives in Supabase, never in the repo (`supabase/*.private.sql` and `assets/` are git-ignored). Crew photos are in the Supabase Storage bucket `crew-photos` under random file names; `sign_in()` returns the photo link, which fills the crew card's photo tile.
 - Skip login (hidden only on `*.vercel.app`) signs in a guest who joined in 2020. Guests remember nothing: every visit starts each interaction as a first visit. New interactions should use `recall()` / `remember()` in `timeline.html` so this holds automatically.

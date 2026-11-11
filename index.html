@@ -56,6 +56,10 @@
   #cta { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; flex-shrink: 0; }
   #accept { flex-shrink: 0; box-sizing: border-box; width: 314px; display: flex; align-items: center; gap: 6.729px; padding: 10.951px 18.951px; border: 1.049px solid #fff; border-radius: 26.411px; background: #fff; cursor: pointer; font: 600 15.7px/normal 'Barlow Condensed', sans-serif; color: #070504; white-space: nowrap; transition: background .2s, border-color .2s; }
   #accept:hover { background: #9e9891; border-color: #9e9891; }
+  /* phones: the site isn't built for them, so "Accept invitation" (and Skip login) give way to a chip in the same style */
+  #phoneChip { display: none; box-sizing: border-box; max-width: 440px; margin: 0; padding: 10.951px 18.951px; border: 1.049px solid #fff; border-radius: 26.411px; background: #fff; color: #070504; font: 600 15.7px/1.2 'Barlow Condensed', sans-serif; text-align: center; text-transform: uppercase; cursor: default; }
+  body.phone #phoneChip { display: block; }
+  body.phone #accept, body.phone #skip, body.phone.local #skip { display: none; }
   /* Figma 100:2089: Back + Accept as, 314px together */
   /* skip login: plain text button under the volume note, only before the form opens */
   /* offered everywhere except the deployed site (see the vercel.app check in the script) */
@@ -118,6 +122,7 @@
     </form>
     </div>
     <div id="cta" class="enter">
+      <p id="phoneChip">Please visit on desktop or tablet for maximum experience</p>
       <button id="accept" type="button"><span>ACCEPT INVITATION</span><span id="arrow"><img src="uploads/intro/arrow.svg" alt="" draggable="false"></span></button>
       <div id="pair">
         <button id="back" type="button">BACK</button>
@@ -130,6 +135,8 @@
 </main>
 <script src="./sky.js"></script>
 <script>
+  // phones (a touch screen whose shorter side is under 600px, in either orientation) only get the intro, with a note to use a desktop or tablet
+  if (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600) document.body.classList.add('phone');
 (function () {
   const BGM_LOW = 0.12, W = 13996.6, H = 1080;
   // Supabase: the publishable key is meant for browsers; the staff table itself is unreadable without the two functions below
