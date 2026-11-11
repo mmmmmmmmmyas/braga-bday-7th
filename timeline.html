@@ -436,7 +436,7 @@ class Component extends DCLogic {
   // the message has to be at least MSG_MIN characters (trimmed) before it unlocks F; the box stops at MSG_MAX (maxlength in the template)
   MSG_MIN = 80; MSG_MAX = 240;
   // final section grid: columns, rows on screen, rows in all (the rest scroll into view), and how many message stars it holds
-  // GRID_ROWS includes three empty spacer rows at the top and two at the bottom; cells keep the height of 1/GRID_VIS of the space between the navs
+  // F's grid scrolls sideways: GRID_COLS columns per screen width, GRID_COLS_TOTAL in all; GRID_ROWS = GRID_VIS rows between the navs plus one empty spacer row above and one below
   // Supabase (public publishable values, same as index.html): for crew_profiles(), which checks the signed-in person's email first, and the public crew_names()
   SUPABASE_URL = 'https://ccdjweiqawhvammtajxu.supabase.co'; SUPABASE_KEY = 'sb_publishable_aeeNe84Iyg9ZeEqXByzr1g_f3JfPT6m';
   // placeholder messages for the default unlocked message stars (the chiefs, plus 008), until that person sends a real one; your own star shows your own message
@@ -450,7 +450,7 @@ class Component extends DCLogic {
     '013': 'To everyone who sketched, argued, rebuilt and polished with me: thank you for caring about the details nobody asked for. Happy seventh, Braga, onwards and upwards.',
     '020': 'We taught machines to read maps, and you taught me what a team can learn together. Thank you for every experiment, every model and every brave idea. Here is to smarter years ahead.',
   };
-  GRID_COLS = 16; GRID_VIS = 8; GRID_ROWS = 21; GRID_TOP_SPACERS = 3; GRID_BOTTOM_SPACERS = 2; MSTARS = 72;
+  GRID_COLS = 16; GRID_COLS_TOTAL = 32; GRID_VIS = 8; GRID_ROWS = 10; MSTARS = 72;
   // message stars that are unlocked for now (by tag number); the rest show an empty, smaller photo tile
   MSTARS_UNLOCKED = [1, 2, 3, 4, 8, 12, 13, 20];
   // default size of the top nav, bottom rail and pop-up cards; template uses the same value as zoom:0.85
@@ -480,8 +480,9 @@ class Component extends DCLogic {
       if (e.target.closest && e.target.closest('[data-msg]')) return; // the message box scrolls its own text
       if (!this.skyRef.current || !this.skyRef.current.contains(e.target)) return;
       e.preventDefault(); this.lastAct = performance.now();
-      // on F, vertical scrolling moves the grid; scrolling up past its top goes back along the timeline
-      if (Math.abs(e.deltaY) >= Math.abs(e.deltaX) && this.gridMode() && (e.deltaY > 0 || this.gridT > 0.5)) { this.gridT = this.gridClamp((this.gridT || 0) + e.deltaY); return; }
+      // on F, scrolling (either direction) moves the grid sideways; scrolling back past its start goes back along the timeline
+      const gd = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (this.gridMode() && (gd > 0 || this.gridT > 0.5)) { this.gridT = this.gridClamp((this.gridT || 0) + gd); return; }
       this.targetW = this.clamp(this.targetW + (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * 0.8 / (this.scale() * (this.fitC || 1)));
       this.wheelT = performance.now(); this.snapped = false;
     };
@@ -493,7 +494,8 @@ class Component extends DCLogic {
       if (/^(INPUT|TEXTAREA)$/.test((e.target && e.target.tagName) || '')) return;
       if (e.key === 'Escape') this.closeZoom();
       if (this.zoom) return;
-      if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && this.gridMode()) { e.preventDefault(); this.gridT = this.gridClamp((this.gridT || 0) + (e.key === 'ArrowDown' ? 1 : -1) * (this.gridCh || 90)); return; }
+      // on F, Arrow Right/Left step the grid one column; Left at its start goes back along the timeline
+      if ((e.key === 'ArrowRight' || (e.key === 'ArrowLeft' && this.gridT > 0.5)) && this.gridMode()) { e.preventDefault(); this.gridT = this.gridClamp((this.gridT || 0) + (e.key === 'ArrowRight' ? 1 : -1) * (this.gridCw || 85)); return; }
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
       const secs = this.sections(); if (!secs.length) return;
       this.goSection(Math.max(0, Math.min(secs.length - 1, this.state.centerSec + (e.key === 'ArrowRight' ? 1 : -1))));
@@ -578,15 +580,16 @@ class Component extends DCLogic {
       g.v = g.v * 0.6 + ((e.clientX - g.lx) / dtm) * 0.4; g.vy = g.vy * 0.6 + ((e.clientY - g.ly) / dtm) * 0.4; g.lx = e.clientX; g.ly = e.clientY; g.lt = t;
       const dx = e.clientX - g.x, dy = e.clientY - g.y;
       if (!g.axis && Math.hypot(dx, dy) > 6) g.axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
-      if (g.axis === 'x') this.targetW = this.camW = this.clamp(g.w - dx * 0.8 / per);
-      else if (g.axis === 'y' && g.grid) this.gridT = this.gridS = this.gridClamp(g.s0 - dy);
+      // on F a horizontal drag scrolls the grid; dragging back past its start carries on into the timeline
+      if (g.axis === 'x' && g.grid) { const v = g.s0 - dx; if (v >= 0) { this.gridT = this.gridS = this.gridClamp(v); g.over = 0; } else { this.gridT = this.gridS = 0; g.over = -v; this.targetW = this.camW = this.clamp(g.w - g.over * 0.8 / per); } }
+      else if (g.axis === 'x') this.targetW = this.camW = this.clamp(g.w - dx * 0.8 / per);
       else if (g.axis === 'y') { this.pitch = this.pitchT = Math.max(-10, Math.min(10, g.p0 - dy / 30)); this.pitchV = 0; }
     };
     this.onDragEnd = () => {
       const g = this.drag; if (!g) return; this.drag = null;
       if (this.skyRef.current) this.skyRef.current.style.cursor = 'grab';
-      // grid drag carries on a little after release
-      if (g.axis === 'y' && g.grid) { if (performance.now() - g.lt > 100) g.vy = 0; this.gridT = this.gridClamp(this.gridS - g.vy * 260); return; }
+      // grid drag carries on a little after release (unless it rolled back into the timeline)
+      if (g.axis === 'x' && g.grid && !g.over) { if (performance.now() - g.lt > 100) g.v = 0; this.gridT = this.gridClamp(this.gridS - g.v * 260); return; }
       if (g.axis !== 'x') return;
       if (performance.now() - g.lt > 100) g.v = 0;
       const per = this.scale() * (this.fitC || 1);
@@ -722,7 +725,7 @@ class Component extends DCLogic {
   // final section grid: 16 columns, 8 rows on screen and GRID_ROWS in all (scrolls vertically), 20px in from the screen sides
   // and 20px clear of the top nav and the timeline card; pans with F. Holds MSTARS message stars, one per cell, placed organically.
   gridMode() {
-    // wheel and vertical drag scroll the grid only once the camera has settled on F
+    // wheel, horizontal drag and Arrow Left/Right scroll the grid only once the camera has settled on F
     const b = this.boxes; if (!b.length || !this.onFinal() || this.camW == null) return false;
     const end = b[b.length - 1].cx; return Math.abs(this.camW - end) < 2 && Math.abs(this.targetW - end) < 2;
   }
@@ -730,44 +733,45 @@ class Component extends DCLogic {
   tickGrid(dx, show, on, bx, by) {
     const g = this.gridRef.current; if (!g) return;
     const top = document.querySelector('[data-enter="nav-top"]'), bot = document.querySelector('[data-enter="nav-bottom"]'); if (!top || !bot) return;
-    const vw = this.state.vw, vh = this.state.vh, P = 20, C = this.GRID_COLS, RV = this.GRID_VIS, RT = this.GRID_ROWS, CP = 8;
+    const vw = this.state.vw, vh = this.state.vh, P = 20, C = this.GRID_COLS, CT = this.GRID_COLS_TOTAL, RV = this.GRID_VIS, RT = this.GRID_ROWS, CP = 8;
     const y0 = P + top.offsetHeight + P, y1 = vh - P - bot.offsetHeight - P, w = Math.round(vw - P * 2), h = Math.round(y1 - y0);
-    // the visible area is the full screen height; cells keep the height they had between the navs
-    const cw = w / C, ch = h / RV, z = Math.max(0.1, cw - CP * 2) / 62.7, sh = 45.045 * z, H = Math.round(ch * RT), VH = Math.round(vh);
+    // cells: 16 across the width inside the 20px margins, 8 down between the navs; the spacer rows sit just outside that band
+    const cw = w / C, ch = h / RV, z = Math.max(0.1, cw - CP * 2) / 62.7, sh = 45.045 * z, W = Math.round(cw * CT), H = Math.round(ch * RT), VW = Math.round(vw), VH = Math.round(vh), gy = y0 - ch;
     const now = performance.now(), dt = Math.min(0.05, (now - (this.gridLast || now)) / 1000); this.gridLast = now;
-    this.gridMax = Math.max(0, H - VH); this.gridCh = ch;
-    if (this.gridSize !== `${w}|${h}|${VH}`) {
+    this.gridMax = Math.max(0, W - w); this.gridCw = cw;
+    if (this.gridSize !== `${w}|${h}|${VW}|${VH}`) {
       if (!this.gridIn) {
         g.innerHTML = '<div class="fgrid-in"><svg><path fill="none" stroke="#fff" stroke-width="1"/></svg></div>';
         this.gridIn = g.firstElementChild; this.gridS = this.gridT = 0;
       }
       // lines on half pixels so each one is a crisp 1px
-      this.gridSize = `${w}|${h}|${VH}`; let d = '';
-      for (let i = 0; i <= C; i++) { const x = Math.min(w - 0.5, Math.round(i * cw) + 0.5); d += `M${x} 0V${H}`; }
-      for (let j = 0; j <= RT; j++) { const y = Math.min(H - 0.5, Math.round(j * ch) + 0.5); d += `M0 ${y}H${w}`; }
-      const svg = this.gridIn.firstElementChild; svg.setAttribute('width', w); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${w} ${H}`); svg.firstElementChild.setAttribute('d', d);
-      g.style.width = w + 'px'; g.style.height = VH + 'px';
+      this.gridSize = `${w}|${h}|${VW}|${VH}`; let d = '';
+      for (let i = 0; i <= CT; i++) { const x = Math.min(W - 0.5, Math.round(i * cw) + 0.5); d += `M${x} 0V${H}`; }
+      for (let j = 0; j <= RT; j++) { const y = Math.min(H - 0.5, Math.round(j * ch) + 0.5); d += `M0 ${y}H${W}`; }
+      const svg = this.gridIn.firstElementChild; svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.firstElementChild.setAttribute('d', d);
+      // the viewport spans the whole screen, so stars slide off its edges as the grid scrolls
+      g.style.width = VW + 'px'; g.style.height = VH + 'px';
       g.style.setProperty('--mt', (P + top.offsetHeight) + 'px'); g.style.setProperty('--mb', (P + bot.offsetHeight) + 'px');
       this.gridS = this.gridClamp(this.gridS); this.gridT = this.gridClamp(this.gridT);
       (this.mstars || []).forEach(s => { s.pk = null; });
     }
     g.style.visibility = show ? 'visible' : 'hidden';
-    if (show) g.style.transform = `translate3d(${Math.round(P + dx)}px,0,0)`;
+    if (show) g.style.transform = `translate3d(${Math.round(dx)}px,0,0)`;
     g.dataset.on = on ? '1' : '0';
     if (!show) return;
-    // scroll: eases toward the target; a drag sets both directly
-    if (!(this.drag && this.drag.axis === 'y' && this.drag.grid)) this.gridS += (this.gridT - this.gridS) * (1 - Math.exp(-dt * 10));
+    // scroll (sideways): eases toward the target; a drag sets both directly
+    if (!(this.drag && this.drag.axis === 'x' && this.drag.grid)) this.gridS += (this.gridT - this.gridS) * (1 - Math.exp(-dt * 10));
     if (Math.abs(this.gridT - this.gridS) < 0.05) this.gridS = this.gridT;
-    this.gridIn.style.transform = `translate3d(0,${(-Math.round(this.gridS * 2) / 2)}px,0)`;
+    this.gridIn.style.transform = `translate3d(${(P - Math.round(this.gridS * 2) / 2)}px,${gy.toFixed(1)}px,0)`;
     // no-go: the invitation's container (event lockup, text and button; 588 x 493.19 shown at 60%) in grid-viewport space.
     // Any cell that intersects it stays empty. Exact every frame: the container's position comes from tickFinal, not from the page.
-    const A = { l: bx - Math.round(P + dx), t: by }; A.r = A.l + 588 * 0.6; A.b = A.t + 493.19 * 0.6;
+    const A = { l: bx - Math.round(dx), t: by }; A.r = A.l + 588 * 0.6; A.b = A.t + 493.19 * 0.6;
     // a cell is blocked if it intersects the container anywhere between the current scroll and where the scroll (or a drag's momentum) is heading
-    const lead = this.drag && this.drag.grid ? -(this.drag.vy || 0) * 300 : 0;
+    const lead = this.drag && this.drag.grid ? -(this.drag.v || 0) * 300 : 0;
     const s0 = Math.min(this.gridS, this.gridT, this.gridS + lead), s1 = Math.max(this.gridS, this.gridT, this.gridS + lead);
     // the first and last rows are empty spacers
-    const blocked = (c, r) => r < this.GRID_TOP_SPACERS || r >= RT - this.GRID_BOTTOM_SPACERS || (c * cw < A.r && (c + 1) * cw > A.l && r * ch - s1 < A.b && (r + 1) * ch - s0 > A.t);
-    if (!this.mstars) { if (on) this.placeStars(C, RT, blocked); else return; }
+    const blocked = (c, r) => r < 1 || r >= RT - 1 || (P + c * cw - s1 < A.r && P + (c + 1) * cw - s0 > A.l && gy + r * ch < A.b && gy + (r + 1) * ch > A.t);
+    if (!this.mstars) { if (on) this.placeStars(CT, RT, blocked); else return; }
     // each star is 100%, 90% or 80% of the cell-wide size, centred in its cell
     const cellX = (c, k) => c * cw + CP + (cw - CP * 2) * (1 - k) / 2, cellY = (r, k) => r * ch + (ch - sh * k) / 2;
     const ease = q => 1 - Math.pow(1 - q, 3);
@@ -775,7 +779,7 @@ class Component extends DCLogic {
       // a star in the invitation's way fades out, shrinks, and comes back in another free cell
       if (on && s.dir > 0 && blocked(s.c, s.r)) s.dir = -1;
       s.a += dt * s.dir / (s.dir > 0 ? 0.55 : 0.25);
-      if (s.dir < 0 && s.a <= 0) { this.moveStar(s, C, RT, blocked); s.a = -0.1; s.dir = 1; }
+      if (s.dir < 0 && s.a <= 0) { this.moveStar(s, CT, RT, blocked); s.a = -0.1; s.dir = 1; }
       s.a = Math.min(1, s.a);
       const pk = `${s.c}|${s.r}|${z}`, zk = z * s.k;
       if (pk !== s.pk) { s.pk = pk; s.el.style.zoom = zk.toFixed(4); s.el.style.left = (cellX(s.c, s.k) / zk).toFixed(2) + 'px'; s.el.style.top = (cellY(s.r, s.k) / zk).toFixed(2) + 'px'; }
