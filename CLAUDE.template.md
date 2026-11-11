@@ -64,6 +64,7 @@ Read `README.md` for the full spec. These rules are the user's established direc
 - Only the focused section's stars (and its two bounding years) are hoverable. Changing section clears hover.
 - Hover pop-ups: chip ("Kind · YYYY → YYYY"), optional info card, optional photo cards. All absolutely positioned, randomly placed in any direction that fits the viewport, spawned from the star centre with scale + move (back-out ease, 0.42s in / 0.24s out, staggered 0.12).
 - Pop-ups persist while the cursor is on the star OR any card; 600ms grace after leaving.
+- Any open pop-up card (chip, text, photo, video, message) can be dragged to move it out of the way: it comes to the front, stays on screen, keeps following its star, and keeps the hover open while dragged. A press that doesn't move (under 4px) still opens a photo's zoom.
 - Images start at native resolution (never upscaled), capped 280px (220px when multiple), then × the 0.85 UI scale. Per-image `scale` supported. `.mp4` / `.webm` entries work as media too, muted and looping on hover. Zooming one plays its sound at 50%, with no volume control, and drops the music to 10% until closed.
 - Click a photo → zoom 3× (capped to viewport − 40px margin) to centre over a dim backdrop; click anywhere or Esc closes.
 - Cursor ring: 100px at rest (2.5% pulse, 2.2s), 200px over a star (slower 3.6s pulse). After 400ms idle: ring pulses 100%↔60%, arched text "Drag, Scroll, Hover" (top) / "to Traverse The Timeline" (bottom), 8pt white, opacity 0.8↔0.6; text path stays on the base radius.

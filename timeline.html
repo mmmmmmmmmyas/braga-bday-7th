@@ -1323,8 +1323,28 @@ class Component extends DCLogic {
       const c = { el, key: A.key, lp: P, ox: best[0] + w / 2 - P[0], oy: best[1] + h / 2 - P[1], w, h, p: -k * 0.12, dir: 1, src: it.src };
       el.addEventListener('mouseenter', () => { if (c.dir < 0) return; if (this.state.hoverKey !== c.key) this.setState({ hoverKey: c.key }); });
       el.addEventListener('mouseleave', () => { if (this.zoom) return; this.leaveT = performance.now(); this.setState({ hoverKey: null }); });
-      el.addEventListener('pointerdown', e => { e.stopPropagation(); this.lastAct = performance.now(); this.onGesture(); });
-      if (it.src) el.addEventListener('click', e => { e.stopPropagation(); this.openZoom(c); });
+      // drag a card to move it out of the way (it keeps following its star); a press without moving still opens a photo
+      c.cur = el.style.cursor || 'default'; if (!it.src) { el.style.cursor = 'grab'; c.cur = 'grab'; }
+      el.addEventListener('pointerdown', e => {
+        e.stopPropagation(); this.lastAct = performance.now(); this.onGesture();
+        if (e.button !== 0 || c.dir < 0) return;
+        c.drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: c.ox, oy: c.oy, moved: false };
+        try { el.setPointerCapture(e.pointerId); } catch (err) {}
+      });
+      el.addEventListener('pointermove', e => {
+        const g = c.drag; if (!g || e.pointerId !== g.id) return;
+        const dx = e.clientX - g.sx, dy = e.clientY - g.sy;
+        if (!g.moved && Math.hypot(dx, dy) < 4) return;
+        if (!g.moved) { g.moved = true; el.style.zIndex = String(this.cardZ = (this.cardZ || 1) + 1); el.style.cursor = 'grabbing'; }
+        // keep it on screen: the offset never runs past the edges, so dragging back responds at once
+        const vb = this.cardView || [window.innerWidth, window.innerHeight], E = 12;
+        c.ox = Math.max(E + c.w / 2, Math.min(vb[0] - E - c.w / 2, c.lp[0] + g.ox + dx)) - c.lp[0];
+        c.oy = Math.max(E + c.h / 2, Math.min(vb[1] - E - c.h / 2, c.lp[1] + g.oy + dy)) - c.lp[1];
+        this.lastAct = performance.now();
+      });
+      const endDrag = e => { const g = c.drag; if (!g || e.pointerId !== g.id) return; c.drag = null; el.style.cursor = c.cur; if (g.moved) c.justDragged = true; };
+      el.addEventListener('pointerup', endDrag); el.addEventListener('pointercancel', endDrag);
+      if (it.src) el.addEventListener('click', e => { e.stopPropagation(); if (c.justDragged) { c.justDragged = false; return; } this.openZoom(c); });
       this.cards.push(c);
     });
   }
@@ -1336,9 +1356,12 @@ class Component extends DCLogic {
     if (this.forceKill && !this.zoom) { this.forceKill = false; kill(); this.cardKey = null; this.tipAnchor = null; key = null; }
     // geometric hover check, so cards sliding under a still cursor can't drop the hover
     const CK = this.cardKey, mx = this.mx, my = this.my;
-    const keep = !key && CK && mx != null && (
+    this.cardView = [vw, vh];
+    // a card being dragged keeps the hover open
+    const dragging = this.cards.some(c => c.drag && c.dir > 0);
+    const keep = !key && CK && (dragging || mx != null && (
       (P && B && B.key === CK && Math.hypot(mx - P[0], my - P[1]) < Math.max(rs + 8, 16)) ||
-      this.cards.some(c => c.dir > 0 && c.box && mx >= c.box[0] && mx <= c.box[0] + c.box[2] && my >= c.box[1] && my <= c.box[1] + c.box[3]));
+      this.cards.some(c => c.dir > 0 && c.box && mx >= c.box[0] && mx <= c.box[0] + c.box[2] && my >= c.box[1] && my <= c.box[1] + c.box[3])));
     if (keep && this.state.hoverKey !== CK) this.setState({ hoverKey: CK });
     if (this.zoom) this.lostT = null;
     else if (key && key !== this.cardKey) { kill(); this.spawnCards(A, P, rs, vw, vh); this.cardKey = key; this.lostT = null; }
@@ -1500,7 +1523,7 @@ class Component extends DCLogic {
     });
 
     const counts = secs.map(() => ({ p: 0, m: 0 }));
-    d.stars.forEach(st => { const c = counts[this.secAt(st.x)]; st.kind === 'milestone' ? c.m++ : c.p++; });
+    d.stars.forEach(st => { const c = counts[this.secAt(st.x)]; st.kind === 'milestone' || st.kind === 'event' ? c.m++ : c.p++; });
     const sections = secs.map(sec => ({
       // minimized cells show S, the year each section reaches, M or F; the active cell shows only its label
       idx: sec.i === 0 ? 'S' : sec.i === d.years.length + 1 ? 'M' : sec.i > d.years.length ? 'F' : String(d.years[sec.i - 1].year).slice(2), idxDisplay: sec.i === active ? 'none' : 'block', short: sec.short,
@@ -1519,7 +1542,7 @@ class Component extends DCLogic {
     if (key && key[0] === 'm') this.tipAnchor = { screen: true, key, quote: this.mstarQuote(key.slice(1)), imgs: [], info: null };
     else if (key) {
       let x, y, kind, imgs = [], info = null, rx = 10, ry = 10;
-      if (key[0] === 's') { const st = d.stars.find(q => 's' + q.id === key); x = st.x; y = st.y - st.r - 16; kind = st.kind === 'milestone' ? 'Milestone' : 'Project'; imgs = st.images || (st.image ? [st.image] : []); info = st.info || null; rx = ry = st.r * 1.7; }
+      if (key[0] === 's') { const st = d.stars.find(q => 's' + q.id === key); x = st.x; y = st.y - st.r - 16; kind = { milestone: 'Milestone', event: 'Event' }[st.kind] || 'Project'; imgs = st.images || (st.image ? [st.image] : []); info = st.info || null; rx = ry = st.r * 1.7; }
       else { const yr = d.years.find(q => 'y' + q.year === key); x = yr.x; y = yr.y - (yr.pill ? 80 : 26); kind = 'Year ' + yr.year; imgs = yr.images || (yr.image ? [yr.image] : []); info = yr.info || null; rx = yr.pill ? 144 : 13; ry = yr.pill ? 63 : 13; y = yr.pill ? 394 : yr.y; if (yr.pill) x = 7009; }
       const sec = nodeSec[key] ?? this.secAt(x);
       this.tipSec = sec;
