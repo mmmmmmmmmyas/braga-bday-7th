@@ -24,6 +24,9 @@
   body.tl-ready [data-enter="nav-bottom"] { animation: navUp .9s cubic-bezier(.2,.8,.2,1) .8s backwards; }
   body.tl-ready [data-enter="card"] { animation: cardIn 1s cubic-bezier(.2,1.12,.35,1) 1.4s backwards; }
   body.tl-ready [data-enter="text"] { animation: textIn .9s ease 2s backwards; }
+  /* Starting Point sequence: the card pops in (1.4s), then the invitation note and "Got it!" (2.5s); the navigation block waits for "Got it!" */
+  body.tl-ready [data-enter="note"] { animation: noteIn .9s cubic-bezier(.2,.8,.2,1) 2.5s backwards; }
+  @keyframes noteIn { from { opacity: 0; transform: translateY(10px); } }
   /* small crew card, bottom-left once past Starting Point. Transitions so a change of direction mid-way reverses smoothly */
   /* final section content: top, illustration, bottom arrive 600ms apart once F is focused; leaving fades them together */
   [data-final] > * { opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity .4s ease, transform .4s ease, visibility 0s linear .4s; }
@@ -153,6 +156,21 @@
   .inv-close:hover { color: #9e9891; border-color: #9e9891; }
   .inv-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { [data-inv] .inv-box, [data-inv][data-open="1"] .inv-box { transform: none; } }
+  /* "Got it!" under the invitation note (white pill like the site's buttons); it fades away once clicked */
+  .sp-gotit { pointer-events: auto; box-sizing: border-box; padding: 9px 18px; border: 1.05px solid #fff; border-radius: 999px; background: #fff; color: #070504; font: 600 16px/1 'Barlow Condensed', sans-serif; letter-spacing: 0.02em; text-transform: uppercase; cursor: pointer; transition: background .2s, border-color .2s, opacity .4s ease, visibility 0s; }
+  .sp-gotit:hover { background: #9e9891; border-color: #9e9891; }
+  .sp-gotit.shake { animation: msgShake .42s cubic-bezier(.36,.07,.19,.97); }
+  .sp-gotit:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .sp-gotit[data-done] { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .4s ease, visibility 0s linear .4s; }
+  /* the navigation block, shown after "Got it!" */
+  [data-sp-nav] { opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity .4s ease, transform .4s ease, visibility 0s linear .4s; }
+  [data-sp-nav][data-on="1"] { opacity: 1; visibility: visible; transform: none; transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+  @media (prefers-reduced-motion: reduce) { [data-sp-nav], [data-sp-nav][data-on="1"] { transform: none; } }
+  /* its "screen": a 104 × 66 rectangle with "drag/scroll" in the middle, the arrow overlapping its right edge by 12px */
+  .sp-screen { position: relative; flex-shrink: 0; display: flex; align-items: center; }
+  .sp-screen-box { box-sizing: border-box; width: 104px; height: 66px; display: flex; align-items: center; justify-content: center; border: 1.05px solid #fff; border-radius: 6px; }
+  .sp-screen-box span { font: 500 12px/1 'Barlow Condensed', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.8); white-space: nowrap; }
+  .sp-screen-arrow { display: block; flex-shrink: 0; margin-left: -12px; } /* starts 12px inside the screen's outline */
   /* Starting Point's navigation pill + arrow nudges the same way as "Invitation unlocked" */
   [data-nav-nudge] { animation: msgNudge 1.2s infinite; }
   @media (prefers-reduced-motion: reduce) { [data-msgblock][data-sent="done"] [data-msg-send], [data-nav-nudge] { animation: none; } }
@@ -160,7 +178,7 @@
     transform: translateY(160px) perspective(900px) rotateX(var(--rx, 8deg)) rotateY(var(--ry, -12deg)) rotateZ(var(--rz, 3deg)) scale(.86);
     transition: transform .95s cubic-bezier(.5,0,.85,.6), opacity .45s ease-in .5s, visibility 0s linear .95s; }
   /* scroll hint, bottom-right: Figma 176 × 71, scaled to the 41px timeline bar */
-  [data-hint] { left: auto; right: 20px; width: 101.63px; height: auto; } /* width kept; height follows the text */
+  [data-hint] { left: auto; right: 20px; width: 120px; height: 127.5px; } /* the same size as the small crew card, bottom-left */
   [data-mini][data-on="1"], [data-hint][data-on="1"] { opacity: 1; visibility: visible;
     transform: translateY(0) perspective(900px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
     transition: transform 1s cubic-bezier(.2,1.12,.35,1), opacity .5s ease, visibility 0s; }
@@ -169,6 +187,7 @@
     @keyframes navDown { from { opacity: 0; } }
     @keyframes navUp { from { opacity: 0; transform: translateX(-50%); } to { opacity: 1; transform: translateX(-50%); } }
     @keyframes cardIn { from { opacity: 0; } }
+    @keyframes noteIn { from { opacity: 0; } }
     #cover i { animation: coverIn .4s ease .35s forwards; }
   }
 </style>
@@ -246,17 +265,20 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
     </sc-for>
     <div ref="{{ startRef }}" style="position:absolute;left:0;top:0;pointer-events:none;visibility:hidden;opacity:{{ startOp }};transition:opacity .5s ease;will-change:transform">
       <div style="zoom:0.75;width:1400px;height:340px;display:flex;align-items:center;gap:137px">
-      <p data-enter="text" style="flex-shrink:0;font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px">Scroll to the end of the timeline to collect your invitation.</p>
+      <div data-enter="note" style="flex-shrink:0;width:185px;display:flex;flex-direction:column;align-items:flex-start;gap:20px">
+        <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px"><span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Scroll to the end of the timeline</span> to collect your invitation.</p>
+        <button type="button" class="sp-gotit" data-gotit="1">Got it!</button>
+      </div>
       <div data-enter="card" style="flex-shrink:0;box-sizing:border-box;width:320px;height:340px;padding:30px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;border:2px solid rgba(255,255,255,0.12);border-radius:16px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,0.08));-webkit-backdrop-filter:blur(4.5px);backdrop-filter:blur(4.5px);font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase">
         <div style="flex-shrink:0;width:100%;display:flex;justify-content:space-between;align-items:flex-start;font-size:20px;line-height:1.12;color:rgba(255,255,255,0.56);white-space:nowrap"><span>Crew # {{ crew.tag }}</span><span>EST. {{ crew.year }}</span></div>
         <div style="flex-shrink:0;width:102px;height:102px;border-radius:16px;background:{{ crew.photoBg }}"></div>
         <div style="flex-shrink:0;width:100%"><div style="font-size:24px;line-height:1.12;color:#fff;overflow-wrap:anywhere">{{ crew.name }}</div><div style="font-size:20px;line-height:1.32;color:rgba(255,255,255,0.32);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ crew.email }}</div></div>
         <div style="flex-shrink:0;width:100%;font-size:24px;line-height:1.12;color:rgba(255,255,255,0.56)">{{ crew.title }}</div>
       </div>
-      <div data-enter="text" style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
+      <div data-sp-nav="1" data-on="0" style="flex-shrink:0;width:242px;display:flex;flex-direction:column;align-items:flex-start;gap:48px">
         <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:12px;line-height:1.12;color:#fff;margin:0;width:100%">NAVIGATION</p>
-        <div data-nav-nudge="1" style="position:relative;flex-shrink:0;width:100px;height:32px"><img src="uploads/starting/nav-pill-arrow.svg" alt="" draggable="false" style="position:absolute;display:block;left:-1.050px;top:-1.050px"></div>
-        <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px;opacity:0.8"><span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Hold</span> &amp; <span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Drag</span> the space. LET’s TRAVERSE THROUGH THE MEMORY LANE.</p>
+        <div data-nav-nudge="1" class="sp-screen" aria-hidden="true"><div class="sp-screen-box"><span>drag/scroll</span></div><svg class="sp-screen-arrow" width="44" height="12" viewBox="0 0 44 12" fill="none"><path d="M0.5 6h42M37.5 1l5 5-5 5" stroke="#fff" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <p style="font-family:'Barlow Condensed',sans-serif;font-weight:500;text-transform:uppercase;font-size:18px;line-height:1.32;letter-spacing:0.36px;text-align:justify;color:#fff;margin:0;width:185px;opacity:0.8"><span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Hold</span>, <span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Drag</span>, or <span style="text-decoration:underline;text-decoration-thickness:from-font;text-underline-position:from-font;text-decoration-skip-ink:none">Scroll</span> the page to navigate.<br><br>Let’s traverse through the memory lane!</p>
       </div>
       </div>
     </div>
@@ -323,9 +345,9 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
     </div>
     <div ref="{{ miniRef }}" data-mini="1" aria-hidden="true"></div>
     <div ref="{{ hintCardRef }}" data-hint="1">
-      <div style="zoom:0.57746;box-sizing:border-box;width:176px;padding:15px;display:flex;align-items:flex-start;gap:8px;border:1px solid rgba(255,255,255,0.32);border-radius:8.974px">
-        <img src="uploads/hint/arrow-up-to-arc.svg" alt="" draggable="false" style="display:block;flex-shrink:0;width:20px;height:20px;transform:rotate(90deg)">
-        <p style="flex:1 0 0;min-width:1px;margin:0;zoom:1.47197;font-family:Archivo,sans-serif;font-weight:400;font-size:11px;line-height:1.3;letter-spacing:0.04em;color:#fff">Scroll to the end of the timeline to collect your invitation.</p>
+      <div style="zoom:0.68182;box-sizing:border-box;width:176px;height:187.00px;padding:15px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;box-shadow:inset 0 0 0 2.314px rgba(255,255,255,0.32);border-radius:8.974px">
+        <img src="uploads/hint/arrow-up-to-arc.svg" alt="" draggable="false" style="display:block;flex-shrink:0;width:23px;height:23px;transform:rotate(90deg)">
+        <p data-hint-text="1" style="width:100%;margin:0;font-family:Archivo,sans-serif;font-weight:400;font-size:19px;line-height:1.3;letter-spacing:0.04em;color:#fff">Scroll to the end of the timeline to collect your invitation.</p>
       </div>
     </div>
     <div data-enter="nav-top" style="position:absolute;top:20px;left:20px;right:20px;pointer-events:none">
@@ -482,7 +504,7 @@ class Component extends DCLogic {
     // hover sound for the rest of the interactive UI, at half the stars' volume, once per entry into an element
     this.uiSeq = 0;
     this.onUiOver = e => {
-      const el = e.target && e.target.closest && e.target.closest('[data-rail],[data-nav-sound],[data-rsvp],[data-zoomable],[data-msg-send],[data-inv-btn]');
+      const el = e.target && e.target.closest && e.target.closest('[data-rail],[data-nav-sound],[data-rsvp],[data-zoomable],[data-msg-send],[data-inv-btn],[data-gotit]');
       if (!el || (e.relatedTarget && el.contains(e.relatedTarget)) || el.getAttribute('aria-disabled') === 'true') return;
       // half the stars' loudness, from an offline render of this exact chain: 0.5 at SFX gain 0.3 ('off'), 0.48 at 0.6 where the compressor just touches the star hover
       this.playHover('ui:' + (el.dataset.sfx || (el.dataset.sfx = ++this.uiSeq)), this.state.soundMode === 'off' ? 0.5 : 0.48);
@@ -491,6 +513,7 @@ class Component extends DCLogic {
     // "Open invitation" opens the invitation modal; the backdrop and Close shut it
     this.onInvClick = e => {
       const t = e.target; if (!t || !t.closest) return;
+      if (t.closest('[data-gotit]')) { this.spGotIt(); return; }
       if (t.closest('[data-rsvp]')) { this.openInv(); return; }
       if (this.invOpen && t.closest('[data-inv-close]')) this.closeInv();
     };
@@ -585,7 +608,7 @@ class Component extends DCLogic {
     window.removeEventListener('wheel', this.onWheel);
     window.removeEventListener('keydown', this.onKey);
     document.removeEventListener('mouseover', this.onUiOver);
-    document.removeEventListener('click', this.onMsgClick); document.removeEventListener('click', this.onInvClick); clearTimeout(this.msgTimer); clearTimeout(this.stT1);
+    document.removeEventListener('click', this.onMsgClick); document.removeEventListener('click', this.onInvClick); clearTimeout(this.msgTimer); clearTimeout(this.stT1); clearTimeout(this.spT);
     document.removeEventListener('input', this.onMsgInput);
     window.removeEventListener('pointerdown', this.onGesture);
     window.removeEventListener('keydown', this.onGesture);
@@ -901,6 +924,21 @@ class Component extends DCLogic {
       e.preventDefault(); f[(i < 0 ? 0 : i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus({ preventScroll: true });
     }
   }
+  // until "Got it!" is clicked the camera stays on the Starting Point (signed-in people who clicked it in this tab aren't held)
+  spGated() { if (this.spDone == null) this.spDone = !!this.recall('gotit'); return !this.spDone; }
+  // a blocked attempt to move on gives "Got it!" a quick shake (at most every 0.9s)
+  spNudge() {
+    const now = performance.now(), g = document.querySelector('[data-gotit]'); if (!g || now - (this.spNudgeT || 0) < 900) return; this.spNudgeT = now;
+    g.classList.remove('shake'); void g.offsetWidth; g.classList.add('shake');
+  }
+  // "Got it!": the button fades away and the navigation block appears to the right of the crew card
+  spGotIt() {
+    this.spDone = true;
+    const g = document.querySelector('[data-gotit]'), nav = document.querySelector('[data-sp-nav]');
+    if (g) { if (document.activeElement === g) g.blur(); g.setAttribute('data-done', '1'); }
+    if (nav) nav.dataset.on = '1';
+    this.remember('gotit', '1');
+  }
   onFinal() { return !!this.state.data && this.state.centerSec === this.state.data.years.length + 2; }
   onMessage() { return !!this.state.data && this.state.centerSec === this.state.data.years.length + 1; }
   // crew card hover tilt, on the main card and the small one: wakes within 30px, builds faster the closer the cursor gets, and peaks on the rim
@@ -939,6 +977,8 @@ class Component extends DCLogic {
       const r = (a, b) => (a + Math.random() * (b - a)) * (Math.random() < 0.5 ? -1 : 1), st = document.body.style;
       st.setProperty('--rx', r(6, 12).toFixed(1) + 'deg'); st.setProperty('--ry', r(10, 18).toFixed(1) + 'deg'); st.setProperty('--rz', r(2, 5).toFixed(1) + 'deg');
       document.body.classList.add('tl-ready');
+      // already said "Got it!" in this tab: no button, and the navigation block follows the note in
+      if (this.recall('gotit')) { const g = document.querySelector('[data-gotit]'); if (g) g.setAttribute('data-done', '1'); this.spT = setTimeout(() => this.spGotIt(), 2900); }
       const cover = document.getElementById('cover'); if (!cover) return;
       cover.classList.add('gone'); setTimeout(() => cover.remove(), 800);
     };
@@ -1127,7 +1167,7 @@ class Component extends DCLogic {
   fitS(k) { return this.skyH() * 0.94 / (this.H * k); }
   scale() { return this.fitS(1); }
   // the camera stops at the message section until a message has been sent; then F opens
-  clamp(v) { const b = this.boxes; if (!b.length) return v; let end = this.state.finalUnlocked || b.length < 2 ? b[b.length - 1].cx : b[b.length - 2].cx; if (this.stellarHold && b[2]) end = Math.min(end, b[1].cx + (b[2].cx - b[1].cx) * 0.5); return Math.max(b[0].cx, Math.min(end, v)); }
+  clamp(v) { const b = this.boxes; if (!b.length) return v; let end = this.state.finalUnlocked || b.length < 2 ? b[b.length - 1].cx : b[b.length - 2].cx; if (this.stellarHold && b[2]) end = Math.min(end, b[1].cx + (b[2].cx - b[1].cx) * 0.25); if (this.spGated()) { if (v > b[0].cx + 1) this.spNudge(); end = b[0].cx; } return Math.max(b[0].cx, Math.min(end, v)); }
   // Starting Point keeps focus until the camera is 80% of the way to section 01; elsewhere the nearest section is focused
   focusSec(x) { const b = this.boxes; if (b.length > 1 && x >= b[0].cx && x < b[1].cx) return x < b[0].cx + (b[1].cx - b[0].cx) * 0.8 ? 0 : 1; return this.nearestSec(x); }
   nearestSec(x) { let bi = 0, bd = Infinity; this.boxes.forEach((b, i) => { const dd = Math.abs(b.cx - x); if (dd < bd) { bd = dd; bi = i; } }); return bi; }
@@ -1147,6 +1187,7 @@ class Component extends DCLogic {
   goSection(i) {
     const n = this.sections().length; if (i === n - 1 && !this.state.finalUnlocked) i = n - 2;
     if (this.stellarHold && i > 1) i = 1; // the stellar tutorial holds the camera on Day 0 → 2019
+    if (this.spGated() && i > 0) { this.spNudge(); i = 0; } // and "Got it!" holds it on the Starting Point
     const sec = this.sections()[i]; if (!sec) return;
     this.targetW = this.clamp(this.boxes[i] ? this.boxes[i].cx : (sec.x0 + sec.x1) / 2); this.snapped = true;
   }
@@ -1511,7 +1552,7 @@ class Component extends DCLogic {
       onSkyMove: e => { const r = this.skyRef.current.getBoundingClientRect(); this.mx = e.clientX - r.left; this.my = e.clientY - r.top; this.lastAct = performance.now(); this.setNavHover(e); },
       onDragStart: e => {
         this.lastAct = performance.now();
-        if (e.button !== 0 || !this.state.data || e.target.closest('[data-nav-sound],[data-rail],[data-rsvp],[data-msg],[data-msg-send]')) return;
+        if (e.button !== 0 || !this.state.data || e.target.closest('[data-nav-sound],[data-rail],[data-rsvp],[data-msg],[data-msg-send],[data-gotit]')) return;
         this.drag = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, lt: performance.now(), w: this.camW ?? this.targetW, p0: this.pitch || 0, v: 0, vy: 0, axis: null, grid: this.gridMode(), s0: this.gridS || 0 };
         this.targetW = this.camW; this.snapped = true;
         this.skyRef.current.style.cursor = 'grabbing';
