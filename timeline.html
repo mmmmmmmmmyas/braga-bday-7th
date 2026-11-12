@@ -212,8 +212,8 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
   <div ref="{{ skyRef }}" onMouseMove="{{ onSkyMove }}" onMouseLeave="{{ onSkyLeave }}" onPointerDown="{{ onDragStart }}" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;cursor:grab;touch-action:none">
     <div ref="{{ auroraRef }}" style="position:absolute;inset:0;pointer-events:none"></div>
     <div ref="{{ gridRef }}" data-fgrid="1" aria-hidden="true" style="position:absolute;left:0;top:0;pointer-events:none;visibility:hidden;will-change:transform"></div>
-    <div ref="{{ dustRef }}" style="position:absolute;left:0;top:0;width:13996.6px;height:1080px;transform-origin:0 0;pointer-events:none;will-change:transform">
-      <svg width="13996.6" height="1080" viewBox="0 0 13996.6 1080" style="position:absolute;left:0;top:0;overflow:visible">
+    <div ref="{{ dustRef }}" style="position:absolute;left:0;top:0;width:14208.3px;height:1080px;transform-origin:0 0;pointer-events:none;will-change:transform">
+      <svg width="14208.3" height="1080" viewBox="0 0 14208.3 1080" style="position:absolute;left:0;top:0;overflow:visible">
         <sc-for list="{{ dust }}" as="p" hint-placeholder-count="0">
           <circle cx="{{ p.x }}" cy="{{ p.y }}" r="{{ p.r }}" fill="#f4f3ef" opacity="{{ p.o }}"></circle>
         </sc-for>
@@ -225,7 +225,7 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
       </sc-for>
     </svg>
     <sc-for list="{{ layers }}" as="L" hint-placeholder-count="0">
-      <div ref="{{ L.ref }}" style="position:absolute;left:0;top:0;width:13996.6px;height:1080px;transform-origin:0 0;pointer-events:none;will-change:transform">
+      <div ref="{{ L.ref }}" style="position:absolute;left:0;top:0;width:14208.3px;height:1080px;transform-origin:0 0;pointer-events:none;will-change:transform">
         <sc-for list="{{ L.guides }}" as="g" hint-placeholder-count="0">
           <div style="position:absolute;top:0;height:1080px;left:{{ g.x }}px;width:0;border-left:1px dashed #f4f3ef;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 50%,transparent);mask-image:linear-gradient(to bottom,transparent,#000 50%,transparent);opacity:{{ g.op }};transition:opacity .5s"></div>
         </sc-for>
@@ -424,7 +424,7 @@ class Component extends DCLogic {
   skyRef = React.createRef(); dustRef = React.createRef(); linesRef = React.createRef(); tipRef = React.createRef(); cardsRef = React.createRef(); ringRef = React.createRef(); zoomRef = React.createRef(); hintRef = React.createRef(); waveRef = React.createRef(); navRef = React.createRef(); auroraRef = React.createRef(); startRef = React.createRef(); finalRef = React.createRef(); msgRef = React.createRef(); miniRef = React.createRef(); invRef = React.createRef(); stellarRef = React.createRef(); starHintRef = React.createRef(); hintCardRef = React.createRef(); lastAct = performance.now(); cards = []; imgDims = {};
   layerEls = []; layerRefFns = [];
   camW = null; targetW = 0; mx = null; tipSec = -1; snapped = true; wheelT = 0; boxes = [];
-  W = 13996.6; H = 1080;
+  W = 14208.3; H = 1080;
   // Starting Point: START wide for its content, plus an empty spacer before Day 0, so focus doesn't switch straight away
   START = 1440; SPACER = 400; LEAD = this.START + this.SPACER;
   // how far into Day 0 → 2019 (world units) the stellar classification's left edge sits
@@ -455,6 +455,7 @@ class Component extends DCLogic {
   MSTARS_UNLOCKED = [1, 2, 3, 4, 8, 12, 13, 20];
   // default size of the top nav, bottom rail and pop-up cards; template uses the same value as zoom:0.85
   UI = 0.85;
+  CARD = 0.8; // hover pop-ups (chip, text cards, media) at 80% of the UI scale
   // stars are framed above this strip, where the old bottom rail sat, so they stay clear of the timeline card
   RAIL = 72 * this.UI;
   // gain per sound mode: music fades down and out, hover SFX stays audible and drops in 'off'
@@ -1378,11 +1379,14 @@ class Component extends DCLogic {
     return v;
   }
   spawnCards(A, P, rs, vw, vh) {
-    const host = this.cardsRef.current, E = 12, U = this.UI, u = n => (n * U).toFixed(2) + 'px', PAD = 6 * U, IW = A.imgs.length > 1 ? 220 : 280, placed = [];
+    const host = this.cardsRef.current, E = 12, U = this.UI * this.CARD, u = n => (n * U).toFixed(2) + 'px', PAD = 6 * U, IW = A.imgs.length > 1 ? 220 : 280, placed = [];
     const inside = r => Math.max(0, Math.min(r[0] + r[2], vw - E) - Math.max(r[0], E)) * Math.max(0, Math.min(r[1] + r[3], vh - E) - Math.max(r[1], E));
     const ov = (r, q) => Math.max(0, Math.min(r[0] + r[2], q[0] + q[2] + 10) - Math.max(r[0], q[0] - 10)) * Math.max(0, Math.min(r[1] + r[3], q[1] + q[3] + 10) - Math.max(r[1], q[1] - 10));
     this.cardAnchor = A;
-    (A.quote ? [{ quote: A.quote }] : [{ chip: true }, ...(A.info ? [{ info: A.info }] : []), ...A.imgs.map(x => typeof x === 'string' ? { src: x } : { src: x.src, scale: x.scale })]).forEach((it, k) => {
+    const items = A.quote ? [{ quote: A.quote }] : [{ chip: true }, ...(A.info ? [{ info: A.info }] : []), ...A.imgs.map(x => typeof x === 'string' ? { src: x } : { src: x.src, scale: x.scale })];
+    // stars with lots of content: when the ring next to the star is full, later cards search further out instead of stacking
+    const SPREAD = items.length > 4 ? Math.min(320, (items.length - 4) * 55) * U : 0, TRIES = SPREAD ? 140 : 60;
+    items.forEach((it, k) => {
       const el = document.createElement('div');
       let w, h;
       if (it.chip) {
@@ -1425,9 +1429,9 @@ class Component extends DCLogic {
       }
       el.style.transformOrigin = '50% 50%'; el.style.opacity = '0'; el.style.pointerEvents = 'auto'; el.style.willChange = 'transform,opacity';
       let best = null, bs = -Infinity;
-      for (let i = 0; i < 60; i++) {
+      for (let i = 0; i < TRIES; i++) {
         const th = Math.random() * Math.PI * 2, cs = Math.cos(th), sn = Math.sin(th);
-        const gap = it.chip ? 10 + Math.random() * 14 : (14 + Math.random() * 28) * (it.quote ? 0.5 : 1);
+        const gap = it.chip ? 10 + Math.random() * 14 : (14 + Math.random() * 28) * (it.quote ? 0.5 : 1) + SPREAD * (i / TRIES);
         // message cards: the gap is measured exactly along the line to the card's edge, so it reads as half the regular gap
         const toEdge = it.quote ? Math.min(Math.abs(cs) > 1e-6 ? (w / 2) / Math.abs(cs) : Infinity, Math.abs(sn) > 1e-6 ? (h / 2) / Math.abs(sn) : Infinity) : (w / 2) * Math.abs(cs) + (h / 2) * Math.abs(sn);
         const dist = rs + gap + toEdge;
@@ -1504,7 +1508,7 @@ class Component extends DCLogic {
   openZoom(c) {
     const layer = this.zoomRef.current; if (this.zoom || !layer) return;
     const r = c.el.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight, M = 40;
-    const f = Math.max(1, Math.min(3 / this.UI, (vh - M * 2) / c.h, (vw - M * 2) / c.w));
+    const f = Math.max(1, Math.min(3 / (this.UI * this.CARD), (vh - M * 2) / c.h, (vw - M * 2) / c.w));
     const W = c.w * f, H = c.h * f, L = (vw - W) / 2, T = (vh - H) / 2;
     const bd = document.createElement('div');
     bd.style.cssText = 'position:absolute;inset:0;background:rgba(8,5,4,0.8);opacity:0;transition:opacity .35s ease;cursor:zoom-out';
@@ -1642,7 +1646,7 @@ class Component extends DCLogic {
     });
 
     const counts = secs.map(() => ({ p: 0, m: 0 }));
-    d.stars.forEach(st => { const c = counts[this.secAt(st.x)]; st.kind === 'milestone' || st.kind === 'event' ? c.m++ : c.p++; });
+    d.stars.forEach(st => { const c = counts[this.secAt(st.x)]; st.kind === 'milestone' || st.kind === 'event' || st.kind === 'disaster' ? c.m++ : c.p++; });
     const sections = secs.map(sec => ({
       // minimized cells show S, the year each section reaches, M or F; the active cell shows only its label
       idx: sec.i === 0 ? 'S' : sec.i === d.years.length + 1 ? 'M' : sec.i > d.years.length ? 'F' : String(d.years[sec.i - 1].year).slice(2), idxDisplay: sec.i === active ? 'none' : 'block', short: sec.short,
@@ -1661,8 +1665,8 @@ class Component extends DCLogic {
     if (key && key[0] === 'm') this.tipAnchor = { screen: true, key, quote: this.mstarQuote(key.slice(1)), imgs: [], info: null };
     else if (key) {
       let x, y, kind, imgs = [], info = null, rx = 10, ry = 10;
-      if (key[0] === 's') { const st = d.stars.find(q => 's' + q.id === key); x = st.x; y = st.y - st.r - 16; kind = { milestone: 'Milestone', event: 'Event' }[st.kind] || 'Project'; imgs = st.images || (st.image ? [st.image] : []); info = st.info || null; rx = ry = st.r * 1.7; }
-      else { const yr = d.years.find(q => 'y' + q.year === key); x = yr.x; y = yr.y - (yr.pill ? 80 : 26); kind = 'Year ' + yr.year; imgs = yr.images || (yr.image ? [yr.image] : []); info = yr.info || null; rx = yr.pill ? 144 : 13; ry = yr.pill ? 63 : 13; y = yr.pill ? 394 : yr.y; if (yr.pill) x = 7009; }
+      if (key[0] === 's') { const st = d.stars.find(q => 's' + q.id === key); x = st.x; y = st.y - st.r - 16; kind = { milestone: 'Milestone', event: 'Event', disaster: 'Disaster' }[st.kind] || 'Project'; imgs = st.images || (st.image ? [st.image] : []); info = st.info || null; rx = ry = st.r * 1.7; }
+      else { const yr = d.years.find(q => 'y' + q.year === key); x = yr.x; y = yr.y - (yr.pill ? 80 : 26); kind = 'Year ' + yr.year; imgs = yr.images || (yr.image ? [yr.image] : []); info = yr.info || null; rx = yr.pill ? 144 : 13; ry = yr.pill ? 63 : 13; y = yr.pill ? 394 : yr.y; if (yr.pill) x = yr.x; }
       const sec = nodeSec[key] ?? this.secAt(x);
       this.tipSec = sec;
       tip = { kind, range: secs[sec].name };
