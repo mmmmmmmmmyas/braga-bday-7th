@@ -238,7 +238,7 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
                 </sc-for>
               </div>
             </sc-if>
-            <div style="width:{{ st.size }}px;height:{{ st.size }}px;border-radius:50%;box-sizing:border-box;border:2.67px solid {{ st.color }};background:{{ st.fill }};box-shadow:0 0 {{ st.glowR }}px {{ st.glowS }}px {{ st.glow }};transform:scale({{ st.scale }});opacity:{{ st.op }};transition:transform .3s cubic-bezier(.2,.8,.2,1),background .25s,border-color .25s,box-shadow .3s,opacity .5s ease"></div>
+            <div style="width:{{ st.size }}px;height:{{ st.size }}px;border-radius:50%;box-sizing:border-box;border:{{ st.bw }}px solid {{ st.color }};background:{{ st.fill }};box-shadow:0 0 {{ st.glowR }}px {{ st.glowS }}px {{ st.glow }};transform:scale({{ st.scale }});opacity:{{ st.op }};transition:transform .3s cubic-bezier(.2,.8,.2,1),background .25s,border-color .25s,box-shadow .3s,opacity .5s ease"></div>
           </div>
           <div onMouseEnter="{{ st.enter }}" onMouseLeave="{{ st.leave }}" style="position:absolute;left:{{ st.lx }}px;top:{{ st.lt }}px;font-size:{{ st.fs }}px;line-height:{{ st.lh }}px;font-family:{{ st.font }};font-weight:{{ st.weight }};font-style:{{ st.fstyle }};letter-spacing:{{ st.ls }};color:{{ st.color }};opacity:{{ st.labelOp }};white-space:pre;pointer-events:{{ st.pe }};transition:color .25s,opacity .5s ease">{{ st.label }}</div>
         </sc-for>
@@ -376,9 +376,9 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
     </div>
     <div data-legend="1" data-on="{{ legendOn }}" aria-label="Star types: Memories, Pictures and Videos, Stories" role="img">
       <div class="lg-in">
-        <span class="lg-item"><svg viewBox="0 0 22 22" width="11" height="11" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="#fff" stroke-width="2.4"/></svg>Memories</span>
+        <span class="lg-item"><svg viewBox="0 0 22 22" width="11" height="11" aria-hidden="true"><circle cx="11" cy="11" r="9" fill="none" stroke="#fff" stroke-width="0.9"/></svg>Memories</span>
         <span class="lg-item"><svg viewBox="0 0 22 22" width="11" height="11" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="#fff"/></svg>Pictures and Videos</span>
-        <span class="lg-item"><svg viewBox="0 0 22 22" width="11" height="11" aria-hidden="true"><circle cx="11" cy="11" r="4.6" fill="none" stroke="#fff" stroke-width="2"/><g stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M11 1.2v2.6M11 18.2v2.6M1.2 11h2.6M18.2 11h2.6M4.07 4.07l1.84 1.84M16.09 16.09l1.84 1.84M4.07 17.93l1.84-1.84M16.09 5.91l1.84-1.84"/></g></svg>Stories</span>
+        <span class="lg-item"><svg viewBox="0 0 22 22" width="11" height="11" aria-hidden="true"><circle cx="11" cy="11" r="4.6" fill="none" stroke="#fff" stroke-width="1.1"/><g stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M11 1.2v2.6M11 18.2v2.6M1.2 11h2.6M18.2 11h2.6M4.07 4.07l1.84 1.84M16.09 16.09l1.84 1.84M4.07 17.93l1.84-1.84M16.09 5.91l1.84-1.84"/></g></svg>Stories</span>
       </div>
     </div>
     <div data-enter="nav-bottom" style="position:absolute;left:50%;bottom:20px;width:331px;transform:translateX(-50%);box-sizing:border-box;padding:0 11px;border:1px solid rgba(255,255,255,0.32);border-radius:8px;overflow:hidden;pointer-events:none">
@@ -1409,7 +1409,8 @@ class Component extends DCLogic {
         const t = document.createElement('div'); t.textContent = it.info.title;
         t.style.cssText = `font-size:${u(11)};letter-spacing:0.16em;text-transform:uppercase;font-weight:600;color:#c9c4be`;
         el.appendChild(t);
-        (it.info.body || []).forEach(s => { const q = document.createElement('div'); q.textContent = s; q.style.cssText = `font-size:${u(14)};line-height:1.5;color:#f4f3ef;text-wrap:pretty`; el.appendChild(q); });
+        (it.info.body || []).forEach(s => { const q = document.createElement('div'); s.split(/~~(.+?)~~/).forEach((t, j) => { if (!t) return; if (j % 2) { const x = document.createElement('s'); x.textContent = t; q.appendChild(x); } else q.appendChild(document.createTextNode(t)); }); // ~~text~~ → strikethrough
+        q.style.cssText = `font-size:${u(14)};line-height:1.5;color:#f4f3ef;text-wrap:pretty`; el.appendChild(q); });
         host.appendChild(el); w = el.offsetWidth; h = el.offsetHeight;
       } else {
         const dim = this.imgDims[it.src] || { w: 4, h: 3 };
@@ -1593,6 +1594,8 @@ class Component extends DCLogic {
         color: on || near ? HOV : INK,
         // hollow ring (bg-filled so connector lines stop at the edge) until the star has real content attached
         fill: (st.content || st.image || st.images || st.media || st.text) ? (on || near ? HOV : INK) : (st.info && on ? HOV : '#080504'),
+        // outline weight by type: media 2.67, stories (info card) 1, memories (hollow, nothing attached) 0.8 so they sit back
+        bw: (st.content || st.image || st.images || st.media || st.text) ? 2.67 : st.info ? 1 : 0.8,
         pe: sec === hs ? 'auto' : 'none',
         key: k, rays: st.info ? RAYS : false, rayLen: 6, rayTop: -(st.r * 1.7 + 4 + 6), rayOrig: st.r * 1.7 + 4 + 6,
         // stars with photos or video glow brighter and wider than the rest, not just filled
