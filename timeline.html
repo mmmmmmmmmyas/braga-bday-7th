@@ -55,7 +55,7 @@
   .mstar { transform-origin: 50% 50%; opacity: 0; }
   /* message star (Figma 137:4531, 62.7 x 45.05): photo tile with the crew tag overlapping it; zoomed to one grid cell's width */
   .mstar { position: absolute; left: 0; top: 0; width: 62.7px; height: 45.045px; display: flex; align-items: center; justify-content: center; }
-  .mstar .photo { flex-shrink: 0; box-sizing: border-box; width: 45.045px; height: 45.045px; margin-right: -19.305px; border: 2px solid #fff; border-radius: 14.709px; background: #d9d9d9; }
+  .mstar .photo { flex-shrink: 0; box-sizing: border-box; width: 45.045px; height: 45.045px; margin-right: -19.305px; border: 1.25px solid #fff; border-radius: 14.709px; background: #d9d9d9; }
   /* not unlocked yet: an empty tile (no fill) at 40% of its size; the tag stays the same */
   /* hovered (or its card open): the photo tile glows and grows to 144% (120%, plus 20% more) */
   .mstar .photo { transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease; }
@@ -253,7 +253,7 @@ try { if (!sessionStorage.getItem('braga7.accepted') || !sessionStorage.getItem(
 <style>html,body{margin:0;height:100%;background:#080504;overflow:hidden}a{color:#f4f3ef}a:hover{color:#9e9891}</style>
 </helmet>
 <div style="position:fixed;inset:0;background:#080504;color:#f4f3ef;font-family:Archivo,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none">
-  <div ref="{{ skyRef }}" onMouseMove="{{ onSkyMove }}" onMouseLeave="{{ onSkyLeave }}" onPointerDown="{{ onDragStart }}" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;cursor:grab;touch-action:none">
+  <div ref="{{ skyRef }}" onMouseMove="{{ onSkyMove }}" onMouseLeave="{{ onSkyLeave }}" onPointerDown="{{ onDragStart }}" style="position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;overflow:clip;cursor:grab;touch-action:none">
     <div ref="{{ auroraRef }}" style="position:absolute;inset:0;pointer-events:none"></div>
     <div ref="{{ gridRef }}" data-fgrid="1" aria-hidden="true" style="position:absolute;left:0;top:0;pointer-events:none;visibility:hidden;will-change:transform"></div>
     <div ref="{{ dustRef }}" style="position:absolute;left:0;top:0;width:14208.3px;height:1080px;transform-origin:0 0;pointer-events:none;will-change:transform">
@@ -653,7 +653,7 @@ class Component extends DCLogic {
     window.addEventListener('pointercancel', this.onDragEnd);
     this.initAurora();
     setTimeout(() => this.revealWhenReady(), 8000);
-    const tick = () => { this.tick(); this.tickStart(); this.tickStellar(); this.tickFinal(); this.tickMessage(); this.tickCardTilt(); this.tickBadge(); this.tickMiniCard(); this.tickWave(); this.tickAurora(); this.raf = requestAnimationFrame(tick); };
+    const tick = () => { this.tick(); this.tickStart(); this.tickStellar(); this.tickFinal(); this.tickMessage(); this.tickCardTilt(); this.tickBadge(); this.tickPopBadges(); this.tickMiniCard(); this.tickWave(); this.tickAurora(); this.raf = requestAnimationFrame(tick); };
     this.raf = requestAnimationFrame(tick);
   }
   componentWillUnmount() {
@@ -824,7 +824,7 @@ class Component extends DCLogic {
     // the first and last rows are empty spacers
     const blocked = (c, r) => r < 1 || r >= RT - 1 || (P + c * cw - s1 < A.r && P + (c + 1) * cw - s0 > A.l && gy + r * ch < A.b && gy + (r + 1) * ch > A.t);
     if (!this.mstars) { if (on) this.placeStars(CT, RT, blocked); else return; }
-    // each star is 100%, 90% or 80% of the cell-wide size, centred in its cell
+    // each star is 100%, 90% or 80% of the cell-wide size, centred in its cell, then nudged 0 or 12 right or down (starJit)
     const cellX = (c, k) => c * cw + CP + (cw - CP * 2) * (1 - k) / 2, cellY = (r, k) => r * ch + (ch - sh * k) / 2;
     const ease = q => 1 - Math.pow(1 - q, 3);
     this.mstars.forEach(s => {
@@ -833,8 +833,8 @@ class Component extends DCLogic {
       s.a += dt * s.dir / (s.dir > 0 ? 0.55 : 0.25);
       if (s.dir < 0 && s.a <= 0) { this.moveStar(s, CT, RT, blocked); s.a = -0.1; s.dir = 1; }
       s.a = Math.min(1, s.a);
-      const pk = `${s.c}|${s.r}|${z}`, zk = z * s.k;
-      if (pk !== s.pk) { s.pk = pk; s.el.style.zoom = zk.toFixed(4); s.el.style.left = (cellX(s.c, s.k) / zk).toFixed(2) + 'px'; s.el.style.top = (cellY(s.r, s.k) / zk).toFixed(2) + 'px'; }
+      const pk = `${s.c}|${s.r}|${z}|${s.jx}|${s.jy}`, zk = z * s.k;
+      if (pk !== s.pk) { s.pk = pk; s.el.style.zoom = zk.toFixed(4); s.el.style.left = ((cellX(s.c, s.k) + s.jx * z) / zk).toFixed(2) + 'px'; s.el.style.top = ((cellY(s.r, s.k) + s.jy * z) / zk).toFixed(2) + 'px'; }
       // in: eased out over 0.55s; out: drops off fast (0.25s, squared) so it's gone before it reaches the invitation
       const q = Math.max(0, s.a), e = s.dir > 0 ? ease(q) : q * q, vk = `${e.toFixed(3)}`;
       if (vk !== s.vk) { s.vk = vk; s.el.style.opacity = e.toFixed(3); s.el.style.transform = `scale(${(0.4 + 0.6 * e).toFixed(3)})`; }
@@ -857,7 +857,7 @@ class Component extends DCLogic {
       el.innerHTML = '<div class="photo"><div class="rays">' + [0, 45, 90, 135, 180, 225, 270, 315].map(d => `<i style="transform:rotate(${d}deg)"></i>`).join('') + '</div></div><p class="tag"></p>'; el.lastChild.textContent = '# ' + String(i + 1).padStart(3, '0');
       this.gridIn.appendChild(el);
       // first visit: stars pop in one by one in random order over about a second; each gets one of three sizes
-      stars.push({ el, tag: String(i + 1).padStart(3, '0'), c: cell[0], r: cell[1], k: [1, 0.9, 0.8][Math.floor(Math.random() * 3)], a: -Math.random() * 0.6 - 0.15, dir: 1, pk: null, vk: null });
+      stars.push({ el, tag: String(i + 1).padStart(3, '0'), c: cell[0], r: cell[1], ...this.starJit(), k: [1, 0.9, 0.8][Math.floor(Math.random() * 3)], a: -Math.random() * 0.6 - 0.15, dir: 1, pk: null, vk: null });
     }
     this.mstars = stars; this.refreshStars();
   }
@@ -869,10 +869,10 @@ class Component extends DCLogic {
     let p = {}; try { p = JSON.parse(sessionStorage.getItem('braga7.profile') || '{}') || {}; } catch (e) {}
     const call = (fn, body) => this.rpc(fn, body).then(rows => { if (!Array.isArray(rows) || !rows.length) throw new Error('none'); return rows; });
     const remote = p.guest || !p.email || !p.tag ? Promise.reject(new Error('guest')) :
-      call('crew_profiles', { p_tag: p.tag, p_email: p.email }).then(rows => Object.fromEntries(rows.map(r => [r.tag, { name: r.name || '', title: r.title || '', photo: r.photo || '', message: r.message || '' }])));
+      call('crew_profiles', { p_tag: p.tag, p_email: p.email }).then(rows => Object.fromEntries(rows.map(r => [r.tag, { name: r.name || '', title: r.title || '', year: r.year || null, photo: r.photo || '', message: r.message || '' }])));
     const local = () => /\.vercel\.app$/i.test(location.hostname) ? Promise.reject(new Error('deployed')) : fetch(new URL('assets/crew-local.json', document.baseURI))
       .then(r => r.ok ? r.json() : Promise.reject(new Error(r.status)))
-      .then(m => Object.fromEntries(Object.entries(m).map(([t, c]) => [t, { name: c.name || '', title: c.title || '', photo: c.photo ? new URL('assets/photos-supabase/' + c.photo, document.baseURI).href : '' }])));
+      .then(m => Object.fromEntries(Object.entries(m).map(([t, c]) => [t, { name: c.name || '', title: c.title || '', year: c.year || null, photo: c.photo ? new URL('assets/photos-supabase/' + c.photo, document.baseURI).href : '' }])));
     const names = () => call('crew_names', {}).then(rows => Object.fromEntries(rows.map(r => [String(r.id).padStart(3, '0'), { name: r.name || '', title: '', photo: '' }])));
     remote.catch(local).catch(names).catch(() => ({})).then(m => { this.crew = m; this.refreshStars(); });
   }
@@ -886,6 +886,12 @@ class Component extends DCLogic {
     const me = this.profile(), own = !me.guest && me.tag === tag ? this.recall('message') : null, c = (this.crew && this.crew[tag]) || {};
     // a real message replaces the placeholder as soon as that person has sent one
     return { text: c.message || own || this.MSTAR_SAMPLES[tag] || '', name: c.name || (own ? me.name : '') || 'Crew # ' + tag, title: c.title || (own ? me.title : '') };
+  }
+  // a message star's tenure badge: 2027 − their EST year, 1–7 (from crew_profiles' year, the local crew file, or your own sign-in)
+  mstarBadge(tag) {
+    const me = this.profile(), c = (this.crew && this.crew[tag]) || {};
+    const y = parseInt(c.year || (!me.guest && me.tag === tag ? me.year : 0), 10);
+    return y ? Math.max(1, Math.min(7, 2027 - y)) : null;
   }
   // a message star's centre (its photo tile) in sky coordinates, for anchoring its card
   mstarPoint(key) {
@@ -928,8 +934,10 @@ class Component extends DCLogic {
     const taken = new Set(this.mstars.filter(q => q !== s).map(q => `${q.c},${q.r}`));
     // a free cell that isn't blocked now or where the scroll is heading
     const cell = this.pickCell(C, RT, (c, r) => !(c === s.c && r === s.r) && !blocked(c, r), taken);
-    if (cell) { s.c = cell[0]; s.r = cell[1]; }
+    if (cell) { s.c = cell[0]; s.r = cell[1]; Object.assign(s, this.starJit()); }
   }
+  // organic nudge off the cell centre: 0 or 12 (at the grid's design size), to the right or downward, rolled per star and per move
+  starJit() { const d = Math.random() < 0.5 ? 0 : 12, right = Math.random() < 0.5; return { jx: right ? d : 0, jy: right ? 0 : d }; }
   // message section (M): screen-space like the others, centred on the page when the camera rests on M
   tickMessage() {
     const el = this.msgRef.current, b = this.boxes; if (!el || b.length < 2 || this.camW == null) return;
@@ -1066,26 +1074,41 @@ class Component extends DCLogic {
     el.addEventListener('mouseleave', () => { B.hover = false; el.dataset.hover = '0'; });
     const B = this.badge = { el, n, canvas: el.querySelector('canvas'), spin: 0, speed: 0, boost: 0, on: false };
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; B.reduce = reduce;
-    Promise.all([import('three'), import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('three/addons/environments/RoomEnvironment.js')])
+    B.ctx = B.canvas.getContext('2d');
+    this.badgeEngine().then(E => E.load(n).then(() => { B.E = E; B.ready = true; if (B.pending) this.showBadge(); })).catch(() => { el.remove(); this.badge = null; });
+  }
+  // one shared three.js renderer for every badge on the page (the Starting Point badge and the message stars' pop-up badges). WebGL
+  // draws into a detached 256px canvas and each frame is copied onto the visible 2D canvases: the page then carries no second WebGL
+  // layer next to the sky's (two GL layers made Chrome on macOS blink the constellation layers on hover re-renders). Models load
+  // once each, on first use.
+  badgeEngine() {
+    if (this.bEng) return this.bEng;
+    return (this.bEng = Promise.all([import('three'), import('three/addons/loaders/GLTFLoader.js'), import('three/addons/libs/meshopt_decoder.module.js'), import('three/addons/environments/RoomEnvironment.js')])
       .then(([T, { GLTFLoader }, { MeshoptDecoder }, { RoomEnvironment }]) => {
-        // WebGL draws into a detached canvas and each frame is copied onto the visible 2D canvas: the page then carries no second WebGL
-        // layer next to the sky's (two GL layers made Chrome on macOS blink the constellation layers on hover re-renders)
-        B.gl = document.createElement('canvas'); B.ctx = B.canvas.getContext('2d');
-        const r = new T.WebGLRenderer({ canvas: B.gl, alpha: true, antialias: true, powerPreference: 'low-power' });
+        const S = 256, gl = document.createElement('canvas'), r = new T.WebGLRenderer({ canvas: gl, alpha: true, antialias: true, powerPreference: 'low-power' });
+        r.setPixelRatio(1); r.setSize(S, S, false);
         r.setClearColor(0x000000, 0); r.outputColorSpace = T.SRGBColorSpace; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.15;
         const scene = new T.Scene(), pm = new T.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(r), 0.04).texture;
         const key = new T.DirectionalLight(0xffffff, 1.6); key.position.set(0.6, 1, 1.2); scene.add(key);
         const cam = new T.PerspectiveCamera(30, 1, 0.01, 10); cam.position.set(0, 0, 0.62);
+        const pivot = new T.Group(); scene.add(pivot);
         const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-        loader.load(`uploads/badge/badge-${n}.glb`, g => {
+        const E = { S, gl, ready: {}, pending: {}, cur: null };
+        E.load = n => E.pending[n] || (E.pending[n] = new Promise((ok, no) => loader.load(`uploads/badge/badge-${n}.glb`, g => {
           const m = g.scene, box = new T.Box3().setFromObject(m), c = box.getCenter(new T.Vector3()); m.position.sub(c);
           // metal finish: the face plate polished, the raised digits and rim (the *_dark materials) a little rougher
           m.traverse(o => { if (!o.isMesh) return; const mt = o.material; mt.metalness = 0.92; mt.roughness = /dark/.test(mt.name) ? 0.42 : 0.28; mt.envMapIntensity = 1.1; });
-          const pivot = new T.Group(); pivot.add(m); scene.add(pivot);
-          Object.assign(B, { T, r, scene, cam, pivot, ready: true });
-          if (B.pending) this.showBadge();
-        });
-      }).catch(() => { el.remove(); this.badge = null; });
+          E.ready[n] = m; ok(m);
+        }, undefined, no)));
+        // draws badge n turned to `angle` (radians about its upright axis) onto a 2D context of px × px
+        E.draw = (n, angle, ctx, px) => {
+          const m = E.ready[n]; if (!m) return false;
+          if (E.cur !== m) { if (E.cur) pivot.remove(E.cur); pivot.add(m); E.cur = m; }
+          pivot.rotation.set(0, angle, 0); r.render(scene, cam);
+          ctx.clearRect(0, 0, px, px); ctx.drawImage(gl, 0, 0, px, px); return true;
+        };
+        return E;
+      }));
   }
   showBadge() {
     const B = this.badge; if (!B) return;
@@ -1111,16 +1134,26 @@ class Component extends DCLogic {
     const rc = B.el.getBoundingClientRect(); if (rc.right < 0 || rc.left > innerWidth || rc.bottom < 0 || rc.top > innerHeight) return;
     // canvas backing store follows its on-screen size (×1.2 headroom for the hover scale), capped at 2× pixel ratio
     const px = Math.round(Math.max(rc.width, rc.height) * Math.min(2, devicePixelRatio || 1) * 1.2);
-    if (px !== B.px) { B.px = px; B.r.setPixelRatio(1); B.r.setSize(px, px, false); B.canvas.width = B.canvas.height = px; }
+    if (px !== B.px) { B.px = px; B.canvas.width = B.canvas.height = px; }
     // idle: one turn about the upright axis every 4.5s; the entrance boost adds up to 2.5× that and decays over ~1.4s; on hover it eases to
     // the nearer face (0 or π) and holds there
     const IDLE = Math.PI * 2 / 4.5;
     B.boost = Math.max(0, B.boost - dt / 1.4);
     if (B.hover) { const face = Math.round(B.spin / Math.PI) * Math.PI; B.spin += (face - B.spin) * (1 - Math.exp(-dt * 9)); }
     else if (!B.reduce) B.spin += IDLE * (1 + 1.5 * B.boost * B.boost) * dt;
-    B.pivot.rotation.set(0, B.reduce && !B.hover ? -0.35 : B.spin, 0);
-    B.r.render(B.scene, B.cam);
-    B.ctx.clearRect(0, 0, B.px, B.px); B.ctx.drawImage(B.gl, 0, 0);
+    B.E.draw(B.n, B.reduce && !B.hover ? -0.35 : B.spin, B.ctx, B.px);
+  }
+  // message stars' pop-up badges: each live one turns at the idle speed from a random start, drawn by the shared renderer
+  tickPopBadges() {
+    const L = this.popBadges; if (!L || !L.length) return;
+    this.popBadges = L.filter(b => b.el.isConnected); if (!this.popBadges.length) return;
+    this.bEng.then(E => {
+      const now = performance.now(), dpr = Math.min(2, devicePixelRatio || 1), IDLE = Math.PI * 2 / 4.5, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.popBadges.forEach(b => {
+        const px = Math.round(b.size * dpr * 1.5); if (px !== b.px) { b.px = px; b.canvas.width = b.canvas.height = px; }
+        E.draw(b.n, reduce ? -0.35 : b.a0 + (now - b.t0) / 1000 * IDLE, b.ctx, px);
+      });
+    });
   }
   // leaving a star, year or pop-up doesn't drop the hover at once: 280ms of grace lets the pointer cross the gap to a neighbouring card
   // (or back) without the whole constellation un-dimming and re-dimming in between, which read as a flicker. Entering anything
@@ -1541,7 +1574,8 @@ class Component extends DCLogic {
     const inside = r => Math.max(0, Math.min(r[0] + r[2], vw - E) - Math.max(r[0], E)) * Math.max(0, Math.min(r[1] + r[3], vh - E) - Math.max(r[1], E));
     const ov = (r, q) => Math.max(0, Math.min(r[0] + r[2], q[0] + q[2] + 10) - Math.max(r[0], q[0] - 10)) * Math.max(0, Math.min(r[1] + r[3], q[1] + q[3] + 10) - Math.max(r[1], q[1] - 10));
     this.cardAnchor = A;
-    const items = A.quote ? [{ quote: A.quote }] : [{ chip: true }, ...(A.info ? [{ info: A.info }] : []), ...A.imgs.map(x => typeof x === 'string' ? { src: x } : { src: x.src, scale: x.scale })];
+    // message star: the badge first (fixed beside the tile), so the quote card is placed around it
+    const items = A.quote ? [...(A.badge ? [{ badge: A.badge }] : []), { quote: A.quote }] : [{ chip: true }, ...(A.info ? [{ info: A.info }] : []), ...A.imgs.map(x => typeof x === 'string' ? { src: x } : { src: x.src, scale: x.scale })];
     // stars with lots of content: when the ring next to the star is full, later cards search further out instead of stacking
     const SPREAD = items.length > 4 ? Math.min(320, (items.length - 4) * 55) * U : 0, TRIES = SPREAD ? 140 : 60;
     items.forEach((it, k) => {
@@ -1552,6 +1586,15 @@ class Component extends DCLogic {
         el.innerHTML = '<span style="color:#c9c4be;font-weight:600"></span><span style="color:#a9a8a3"></span>';
         el.children[0].textContent = A.kind; el.children[1].textContent = A.range;
         host.appendChild(el); w = el.offsetWidth; h = el.offsetHeight;
+      } else if (it.badge) {
+        // message star: their tenure badge, the size of the star's photo tile, turning slowly; it sits just left of the tile, overlapping
+        // it by 12 (a −12 gap, scaled with the tile), and appears, follows and leaves like the quote card
+        w = h = rs / 1.44 * 2;
+        el.style.cssText = `position:absolute;left:0;top:0;width:${w}px;height:${h}px;cursor:default`;
+        el.setAttribute('role', 'img'); el.setAttribute('aria-label', `${it.badge}-year badge`);
+        const cv = document.createElement('canvas'); cv.style.cssText = 'display:block;width:100%;height:100%'; el.appendChild(cv); host.appendChild(el);
+        (this.popBadges = this.popBadges || []).push({ el, canvas: cv, ctx: cv.getContext('2d'), n: it.badge, size: w, t0: performance.now(), a0: Math.random() * Math.PI * 2 });
+        this.badgeEngine().then(E => E.load(it.badge)).catch(() => {});
       } else if (it.quote) {
         // message star: the message in quotation marks, the person's name under it, in the text card's style
         el.style.cssText = `position:absolute;left:0;top:0;width:${u(300)};box-sizing:border-box;padding:${u(16)} ${u(18)} ${u(18)};border:1px solid rgba(158,152,145,0.5);background:#080504;border-radius:${u(14)};box-shadow:0 18px 44px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:${u(10)};font-family:Archivo,sans-serif;cursor:default`;
@@ -1587,11 +1630,13 @@ class Component extends DCLogic {
       }
       el.style.transformOrigin = '50% 50%'; el.style.opacity = '0'; el.style.pointerEvents = 'auto'; el.style.willChange = 'transform,opacity';
       let best = null, bs = -Infinity;
-      for (let i = 0; i < TRIES; i++) {
+      // measured from the tile as it shows while hovered (grown to 144%)
+      if (it.badge) { const hs = rs / 1.44, g = 12 * (2 * hs / 45.045); best = [P[0] - hs * 1.44 - w + g, P[1] - h / 2, w, h]; bs = Infinity; }
+      for (let i = 0; i < TRIES && !it.badge; i++) {
         const th = Math.random() * Math.PI * 2, cs = Math.cos(th), sn = Math.sin(th);
-        const gap = it.chip ? 10 + Math.random() * 14 : (14 + Math.random() * 28) * (it.quote ? 0.5 : 1) + SPREAD * (i / TRIES);
+        const gap = it.chip ? 10 + Math.random() * 14 : (14 + Math.random() * 28) * (it.quote || it.badge ? 0.5 : 1) + SPREAD * (i / TRIES);
         // message cards: the gap is measured exactly along the line to the card's edge, so it reads as half the regular gap
-        const toEdge = it.quote ? Math.min(Math.abs(cs) > 1e-6 ? (w / 2) / Math.abs(cs) : Infinity, Math.abs(sn) > 1e-6 ? (h / 2) / Math.abs(sn) : Infinity) : (w / 2) * Math.abs(cs) + (h / 2) * Math.abs(sn);
+        const toEdge = it.quote || it.badge ? Math.min(Math.abs(cs) > 1e-6 ? (w / 2) / Math.abs(cs) : Infinity, Math.abs(sn) > 1e-6 ? (h / 2) / Math.abs(sn) : Infinity) : (w / 2) * Math.abs(cs) + (h / 2) * Math.abs(sn);
         const dist = rs + gap + toEdge;
         const r = [P[0] + cs * dist - w / 2, P[1] + sn * dist - h / 2, w, h];
         const sc = inside(r) - w * h - 2 * placed.reduce((s, q) => s + ov(r, q), 0);
@@ -1820,7 +1865,7 @@ class Component extends DCLogic {
     }));
 
     let tip = false; this.tipAnchor = null;
-    if (key && key[0] === 'm') this.tipAnchor = { screen: true, key, quote: this.mstarQuote(key.slice(1)), imgs: [], info: null };
+    if (key && key[0] === 'm') this.tipAnchor = { screen: true, key, quote: this.mstarQuote(key.slice(1)), badge: this.mstarBadge(key.slice(1)), imgs: [], info: null };
     else if (key) {
       let x, y, kind, imgs = [], info = null, rx = 10, ry = 10;
       if (key[0] === 's') { const st = d.stars.find(q => 's' + q.id === key); x = st.x; y = st.y - st.r - 16; kind = { milestone: 'Milestone', event: 'Event', disaster: 'Disaster' }[st.kind] || 'Project'; imgs = st.images || (st.image ? [st.image] : []); info = st.info || null; rx = ry = st.r * 1.7; }

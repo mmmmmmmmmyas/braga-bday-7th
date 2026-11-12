@@ -61,12 +61,12 @@ begin
 end;
 $$;
 
--- Name, title, photo and message (if any) for every crew member, for the message stars.
+-- Name, title, EST year, photo and message (if any) for every crew member, for the message stars (the year picks their tenure badge).
 -- Same check as sign_in (the person's tag + work email), without recording a sign-in.
 drop function if exists public.crew_photos(text, text);
 drop function if exists public.crew_profiles(text, text);
 create function public.crew_profiles(p_tag text, p_email text)
-returns table (tag text, name text, title text, photo text, message text)
+returns table (tag text, name text, title text, year smallint, photo text, message text)
 language plpgsql stable security definer set search_path = public
 as $$
 declare
@@ -75,7 +75,7 @@ begin
   if v_email = '' or not exists (select 1 from public.crew c where c.tag = p_tag and v_email = any (c.emails)) then
     return;
   end if;
-  return query select c.tag, c.name, c.title, c.photo, m.body
+  return query select c.tag, c.name, c.title, c.year, c.photo, m.body
     from public.crew c left join public.messages m on m.crew_id = c.id order by c.tag;
 end;
 $$;
