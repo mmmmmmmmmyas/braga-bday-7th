@@ -21,7 +21,9 @@
   @keyframes cardIn { from { opacity: 0; transform: perspective(900px) rotateX(var(--rx, 8deg)) rotateY(var(--ry, -12deg)) rotateZ(var(--rz, 3deg)) scale(.86); } to { opacity: 1; transform: perspective(900px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1); } }
   @keyframes textIn { from { opacity: 0; } }
   body.tl-ready [data-enter="nav-top"] { animation: navDown .9s cubic-bezier(.2,.8,.2,1) .8s backwards; }
-  body.tl-ready [data-enter="nav-bottom"] { animation: navUp .9s cubic-bezier(.2,.8,.2,1) .8s backwards; }
+  /* the timeline bar stays hidden on the Starting Point until "Got it!" (body.sp-done), then flies up from the bottom */
+  body:not(.sp-done) [data-enter="nav-bottom"] { opacity: 0; visibility: hidden; }
+  body.tl-ready.sp-done [data-enter="nav-bottom"] { animation: navUp .9s cubic-bezier(.2,.8,.2,1) .15s backwards; }
   body.tl-ready [data-enter="card"] { animation: cardIn 1s cubic-bezier(.2,1.12,.35,1) 1.4s backwards; }
   body.tl-ready [data-enter="text"] { animation: textIn .9s ease 2s backwards; }
   /* Starting Point sequence: the card pops in (1.4s), then the invitation note and "Got it!" (2.5s); the navigation block waits for "Got it!" */
@@ -942,6 +944,7 @@ class Component extends DCLogic {
     const g = document.querySelector('[data-gotit]'), nav = document.querySelector('[data-sp-nav]');
     if (g) { if (document.activeElement === g) g.blur(); g.setAttribute('data-done', '1'); }
     if (nav) nav.dataset.on = '1';
+    document.body.classList.add('sp-done');
     this.remember('gotit', '1');
   }
   onFinal() { return !!this.state.data && this.state.centerSec === this.state.data.years.length + 2; }
