@@ -169,6 +169,13 @@
   /* "Got it!" under the invitation note (white pill like the site's buttons); it fades away once clicked */
   .sp-gotit { pointer-events: auto; box-sizing: border-box; padding: 9px 18px; border: 1.05px solid #fff; border-radius: 999px; background: #fff; color: #070504; font: 600 16px/1 'Barlow Condensed', sans-serif; letter-spacing: 0.02em; text-transform: uppercase; cursor: pointer; transition: background .2s, border-color .2s, box-shadow .2s, opacity .4s ease, visibility 0s; }
   .sp-gotit { box-shadow: 0 0 18px 2px rgba(255,255,255,0.28); } /* soft glow */
+  /* zoom view previous / next: the sign-in page's arrow button without its label, 52 wide; the previous arrow is the same one mirrored */
+  .zm-nav { position: absolute; width: 52px; height: 40px; box-sizing: border-box; padding: 0; display: flex; align-items: center; justify-content: center; border: 1.049px solid #fff; border-radius: 26.411px;
+    background: #fff; cursor: pointer; opacity: 0; transition: background .2s, border-color .2s, opacity .3s ease, left .35s cubic-bezier(.4,0,.2,1), top .35s cubic-bezier(.4,0,.2,1); }
+  .zm-nav.on { opacity: 1; }
+  .zm-nav:hover { background: #9e9891; border-color: #9e9891; }
+  .zm-nav:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .zm-nav[data-dir="prev"] svg { transform: scaleX(-1); }
   /* 3D tenure badge, 120 × 120 at design size, overlapping the crew card's right edge by 40. The outer box flies down and fades in from
      grey to full colour; the inner box takes the hover lift (20 up, 120%) so the two never fight over one transform */
   [data-badge] { position: absolute; width: 120px; height: 120px; pointer-events: none; opacity: 0; transform: translateY(-90px); filter: grayscale(1) brightness(.55);
@@ -541,7 +548,7 @@ class Component extends DCLogic {
       // typing in a field never steers the timeline
       if (/^(INPUT|TEXTAREA)$/.test((e.target && e.target.tagName) || '')) return;
       if (e.key === 'Escape') this.closeZoom();
-      if (this.zoom) return;
+      if (this.zoom) { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); this.stepZoom(e.key === 'ArrowRight' ? 1 : -1); } return; }
       // on F, Arrow Right/Left step the grid one column; Left at its start goes back along the timeline
       if ((e.key === 'ArrowRight' || (e.key === 'ArrowLeft' && this.gridT > 0.5)) && this.gridMode()) { e.preventDefault(); this.gridT = this.gridClamp((this.gridT || 0) + (e.key === 'ArrowRight' ? 1 : -1) * (this.gridCw || 85)); return; }
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -555,7 +562,7 @@ class Component extends DCLogic {
     // hover sound for the rest of the interactive UI, at half the stars' volume, once per entry into an element
     this.uiSeq = 0;
     this.onUiOver = e => {
-      const el = e.target && e.target.closest && e.target.closest('[data-rail],[data-nav-sound],[data-rsvp],[data-zoomable],[data-msg-send],[data-inv-btn],[data-gotit]');
+      const el = e.target && e.target.closest && e.target.closest('[data-rail],[data-nav-sound],[data-rsvp],[data-zoomable],[data-msg-send],[data-inv-btn],[data-gotit],.zm-nav');
       if (!el || (e.relatedTarget && el.contains(e.relatedTarget)) || el.getAttribute('aria-disabled') === 'true') return;
       // half the stars' loudness, from an offline render of this exact chain: 0.5 at SFX gain 0.3 ('off'), 0.48 at 0.6 where the compressor just touches the star hover
       this.playHover('ui:' + (el.dataset.sfx || (el.dataset.sfx = ++this.uiSeq)), this.state.soundMode === 'off' ? 0.5 : 0.48);
@@ -1708,19 +1715,16 @@ class Component extends DCLogic {
     });
   }
   // click-to-zoom: card grows 3× (capped to the viewport) from its spot to screen centre; any click closes
-  openZoom(c) {
-    const layer = this.zoomRef.current; if (this.zoom || !layer) return;
-    const r = c.el.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight, M = 40;
+  // the zoom box for card c: as large as fits (40 margin), at most 3× the card's design size
+  zoomFit(c) {
+    const vw = window.innerWidth, vh = window.innerHeight, M = 40;
     const f = Math.max(1, Math.min(3 / (this.UI * this.CARD), (vh - M * 2) / c.h, (vw - M * 2) / c.w));
-    const W = c.w * f, H = c.h * f, L = (vw - W) / 2, T = (vh - H) / 2;
-    const bd = document.createElement('div');
-    bd.style.cssText = 'position:absolute;inset:0;background:rgba(8,5,4,0.8);opacity:0;transition:opacity .35s ease;cursor:zoom-out';
-    const z = document.createElement('div');
-    z.style.cssText = `position:absolute;left:${L}px;top:${T}px;width:${W}px;height:${H}px;box-sizing:border-box;padding:10px;border:1px solid rgba(158,152,145,0.2);background:#080504;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform-origin:0 0;cursor:zoom-out;transition:transform .45s cubic-bezier(.2,.8,.2,1)`;
-    z.style.transform = `translate(${r.left - L}px,${r.top - T}px) scale(${r.width / W})`;
+    const W = c.w * f, H = c.h * f; return { W, H, L: (vw - W) / 2, T: (vh - H) / 2 };
+  }
+  // the zoomed media: a copy of the card's photo, or the card's video carried on audibly (the card's own copy pauses)
+  zoomMedia(c) {
     const im = this.mediaEl(c.src), cardVid = c.el.querySelector('video');
     im.style.cssText = 'display:block;width:100%;height:100%;object-fit:cover;border-radius:12px';
-    // the zoomed video carries on from the card's position; only one plays at a time
     if (cardVid) {
       im.currentTime = cardVid.currentTime; cardVid.pause();
       // the click allows sound: the zoomed copy is audible and the music ducks; the hover card stays silent
@@ -1728,23 +1732,81 @@ class Component extends DCLogic {
       im.play().catch(() => { im.muted = true; im.play().catch(() => {}); });
       this.initAudio(); this.duckBgm = true; this.applySound(0.4);
     }
-    z.appendChild(im); layer.append(bd, z);
+    return { im, cardVid, zoomVid: cardVid ? im : null };
+  }
+  // hand the zoomed video's position back to its card, which plays on silently
+  zoomRelease(Z) {
+    if (Z.zoomVid) { Z.zoomVid.muted = true; this.duckBgm = false; this.applySound(0.8); }
+    if (Z.cardVid) { Z.cardVid.currentTime = Z.zoomVid.currentTime; Z.cardVid.play().catch(() => {}); }
+    Z.c.el.style.visibility = '';
+  }
+  // the other photos and videos of the same star, in pop-up order, for the zoom's previous / next buttons
+  zoomList(c) { return (this.cards || []).filter(q => q.key === c.key && q.src && q.dir > 0 && q.el.isConnected); }
+  openZoom(c) {
+    const layer = this.zoomRef.current; if (this.zoom || !layer) return;
+    const r = c.el.getBoundingClientRect(), { W, H, L, T } = this.zoomFit(c);
+    const bd = document.createElement('div');
+    bd.style.cssText = 'position:absolute;inset:0;background:rgba(8,5,4,0.8);opacity:0;transition:opacity .35s ease;cursor:zoom-out';
+    const z = document.createElement('div');
+    z.style.cssText = `position:absolute;left:${L}px;top:${T}px;width:${W}px;height:${H}px;box-sizing:border-box;padding:10px;border:1px solid rgba(158,152,145,0.2);background:#080504;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transform-origin:0 0;cursor:zoom-out;transition:transform .45s cubic-bezier(.2,.8,.2,1)`;
+    z.style.transform = `translate(${r.left - L}px,${r.top - T}px) scale(${r.width / W})`;
+    const m = this.zoomMedia(c);
+    z.appendChild(m.im); layer.append(bd, z);
+    // previous / next: only when the star has more than one photo or video
+    let nav = null;
+    if (this.zoomList(c).length > 1) {
+      nav = ['prev', 'next'].map(d => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'zm-nav'; b.dataset.dir = d;
+        b.setAttribute('aria-label', d === 'prev' ? 'Previous photo or video' : 'Next photo or video');
+        b.innerHTML = '<svg width="26" height="12.39" viewBox="0 0 26 12.39" fill="none" aria-hidden="true"><path d="M0 5.35H25.17V7.03H0Z" fill="#070504"/><path d="M25.766 6.788C26.095 6.46 26.095 5.927 25.766 5.599L20.414 0.246C20.085 -0.082 19.553 -0.082 19.224 0.246C18.896 0.575 18.896 1.107 19.224 1.436L23.982 6.194L19.224 10.951C18.896 11.28 18.896 11.812 19.224 12.141C19.553 12.469 20.085 12.469 20.414 12.141L25.766 6.788Z" fill="#070504"/></svg>';
+        b.addEventListener('click', e => { e.stopPropagation(); this.stepZoom(d === 'prev' ? -1 : 1); });
+        layer.appendChild(b); return b;
+      });
+    }
     layer.style.pointerEvents = 'auto'; layer.onclick = () => this.closeZoom();
     c.el.style.visibility = 'hidden';
     z.getBoundingClientRect();
     bd.style.opacity = '1'; z.style.transform = 'none';
-    this.zoom = { c, z, bd, L, T, W, cardVid, zoomVid: cardVid ? im : null };
+    this.zoom = { c, z, bd, L, T, W, H, nav, cardVid: m.cardVid, zoomVid: m.zoomVid };
+    this.placeZoomNav();
+    if (nav) requestAnimationFrame(() => nav.forEach(b => b.classList.add('on')));
+  }
+  // the buttons sit on the zoom box's vertical centre, each overlapping its side by 24 (52 wide)
+  placeZoomNav() {
+    const Z = this.zoom; if (!Z || !Z.nav) return;
+    const y = Z.T + Z.H / 2 - 20;
+    Z.nav[0].style.left = (Z.L + 24 - 52) + 'px'; Z.nav[1].style.left = (Z.L + Z.W - 24) + 'px';
+    Z.nav.forEach(b => { b.style.top = y + 'px'; });
+  }
+  // previous / next: the box eases to the new media's shape and the media cross-fades; wraps around at either end
+  stepZoom(dir) {
+    const Z = this.zoom; if (!Z || Z.closing) return;
+    const list = this.zoomList(Z.c); if (list.length < 2) return;
+    const i = list.indexOf(Z.c), c = list[((i < 0 ? 0 : i) + dir + list.length) % list.length];
+    this.zoomRelease(Z);
+    const { W, H, L, T } = this.zoomFit(c), m = this.zoomMedia(c), old = Z.z.firstElementChild;
+    Z.z.style.transition = 'left .35s cubic-bezier(.4,0,.2,1), top .35s cubic-bezier(.4,0,.2,1), width .35s cubic-bezier(.4,0,.2,1), height .35s cubic-bezier(.4,0,.2,1)';
+    Object.assign(Z.z.style, { left: L + 'px', top: T + 'px', width: W + 'px', height: H + 'px' });
+    // the incoming media sits over the outgoing one inside the 10px padding, then the old one fades and is removed
+    Object.assign(m.im.style, { position: 'absolute', left: '10px', top: '10px', width: 'calc(100% - 20px)', height: 'calc(100% - 20px)', opacity: '0', transition: 'opacity .3s ease' });
+    Z.z.appendChild(m.im); m.im.getBoundingClientRect(); m.im.style.opacity = '1';
+    if (old) { old.style.transition = 'opacity .25s ease'; old.style.opacity = '0'; setTimeout(() => { if (old.pause) old.pause(); old.remove(); }, 300); }
+    c.el.style.visibility = 'hidden';
+    Object.assign(Z, { c, L, T, W, H, cardVid: m.cardVid, zoomVid: m.zoomVid });
+    this.placeZoomNav();
   }
   closeZoom() {
     const Z = this.zoom; if (!Z || Z.closing) return; Z.closing = true;
     if (Z.zoomVid) { Z.zoomVid.muted = true; this.duckBgm = false; this.applySound(0.8); }
+    if (Z.nav) Z.nav.forEach(b => b.classList.remove('on'));
     const r = Z.c.el.getBoundingClientRect();
+    // back to the card's spot: a transform from the box's current place and size
     Z.z.style.transition = 'transform .35s cubic-bezier(.4,0,.2,1)';
     Z.z.style.transform = `translate(${r.left - Z.L}px,${r.top - Z.T}px) scale(${r.width / Z.W})`;
     Z.bd.style.opacity = '0';
     setTimeout(() => {
       if (Z.cardVid) { Z.cardVid.currentTime = Z.zoomVid.currentTime; Z.cardVid.play().catch(() => {}); }
-      Z.c.el.style.visibility = ''; Z.z.remove(); Z.bd.remove();
+      Z.c.el.style.visibility = ''; Z.z.remove(); Z.bd.remove(); if (Z.nav) Z.nav.forEach(b => b.remove());
       if (this.zoomRef.current) { this.zoomRef.current.style.pointerEvents = 'none'; this.zoomRef.current.onclick = null; }
       this.zoom = null; this.lostT = performance.now(); this.setState({ hoverKey: null });
     }, 360);
