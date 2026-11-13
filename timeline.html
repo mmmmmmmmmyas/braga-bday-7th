@@ -595,6 +595,9 @@ class Component extends DCLogic {
   };
   GRID_COLS = 16; GRID_COLS_TOTAL = 32; GRID_VIS = 8; GRID_ROWS = 10; MSTARS = 72;
   // message stars that are unlocked for now (by tag number); the rest show an empty, smaller photo tile
+  // placeholders are for local previews only: on the deployed site (*.vercel.app) a star opens and shows text only from a real message
+  // in Supabase (or your own, once sent)
+  DEMO = !/\.vercel\.app$/i.test(location.hostname);
   MSTARS_UNLOCKED = [1, 2, 3, 4, 5, 7, 8, 10, 12, 13, 14, 16, 18, 20, 22, 26, 27, 28, 29, 31, 33, 36, 40, 43, 45, 49, 52, 57, 60, 61, 63, 64, 68, 69, 70, 72];
   // default size of the top nav, bottom rail and pop-up cards; template uses the same value as zoom:0.85
   UI = 0.85;
@@ -958,7 +961,7 @@ class Component extends DCLogic {
     const taken = new Set(), stars = [], ok = (c, r) => !blocked(c, r);
     for (let i = 0; i < this.MSTARS; i++) {
       const cell = this.pickCell(C, RT, ok, taken); if (!cell) break; taken.add(`${cell[0]},${cell[1]}`);
-      const el = document.createElement('div'); el.className = 'mstar' + (this.MSTARS_UNLOCKED.includes(i + 1) ? '' : ' locked');
+      const el = document.createElement('div'); el.className = 'mstar' + (this.DEMO && this.MSTARS_UNLOCKED.includes(i + 1) ? '' : ' locked');
       el.innerHTML = '<div class="photo"><div class="rays">' + [0, 45, 90, 135, 180, 225, 270, 315].map(d => `<i style="transform:rotate(${d}deg)"></i>`).join('') + '</div></div><p class="tag"></p>'; el.lastChild.textContent = '# ' + String(i + 1).padStart(3, '0');
       this.gridIn.appendChild(el);
       // first visit: stars pop in one by one in random order over about a second; each gets one of three sizes
@@ -990,7 +993,7 @@ class Component extends DCLogic {
   mstarQuote(tag) {
     const me = this.profile(), own = !me.guest && me.tag === tag ? this.recall('message') : null, c = (this.crew && this.crew[tag]) || {};
     // a real message replaces the placeholder as soon as that person has sent one
-    return { text: c.message || own || this.MSTAR_SAMPLES[tag] || '', name: c.name || (own ? me.name : '') || 'Crew # ' + tag, title: c.title || (own ? me.title : '') };
+    return { text: c.message || own || (this.DEMO && this.MSTAR_SAMPLES[tag]) || '', name: c.name || (own ? me.name : '') || 'Crew # ' + tag, title: c.title || (own ? me.title : '') };
   }
   // a message star's tenure badge: 2027 − their EST year, 1–7 (from crew_profiles' year, the local crew file, or your own sign-in)
   mstarBadge(tag) {
@@ -1029,7 +1032,7 @@ class Component extends DCLogic {
     if (!this.mstars) return;
     const me = this.profile(), m = this.crew || {}, mine = !me.guest && !!this.recall('message');
     this.mstars.forEach(s => {
-      const c = m[s.tag] || {}, own = mine && me.tag === s.tag, open = !!c.message || own || this.MSTARS_UNLOCKED.includes(+s.tag);
+      const c = m[s.tag] || {}, own = mine && me.tag === s.tag, open = !!c.message || own || (this.DEMO && this.MSTARS_UNLOCKED.includes(+s.tag));
       s.el.classList.toggle('locked', !open); s.el.classList.toggle('mine', own);
       const url = c.photo, ok = open && typeof url === 'string' && /^https?:\/\//.test(url);
       s.el.firstChild.style.background = ok ? `#d9d9d9 url("${encodeURI(url)}") center / cover no-repeat` : '';
@@ -1044,7 +1047,7 @@ class Component extends DCLogic {
   // whether a message star is open (has a message, is yours once sent, or is a placeholder star), yours, and its photo link
   mstarState(tag) {
     const me = this.profile(), c = (this.crew || {})[tag] || {}, own = !me.guest && !!this.recall('message') && me.tag === tag;
-    const open = !!c.message || own || this.MSTARS_UNLOCKED.includes(+tag), url = c.photo;
+    const open = !!c.message || own || (this.DEMO && this.MSTARS_UNLOCKED.includes(+tag)), url = c.photo;
     return { open, own, photo: open && typeof url === 'string' && /^https?:\/\//.test(url) ? url : '' };
   }
   // "Read all messages": every message star in the final section's grid (16 cells across the screen, 8 rows, 32 columns in all), in a
